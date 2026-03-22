@@ -1,34 +1,10 @@
 services:
 
-  traefik:
-    image: traefik:v3.1
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-certs:/certs
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.zgaf.acme.email=admin@site.com
-      - --certificatesresolvers.zgaf.acme.storage=/certs/acme.json
-      - --certificatesresolvers.zgaf.acme.tlschallenge=true
-    networks:
-      - traefik-internet
-
   dewshare-db:
     image: postgres:16
     restart: always
-    environment:
-      POSTGRES_USER:
-      POSTGRES_PASSWORD:
-      POSTGRES_DB:
+    env_file:
+      - secrets.var
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -43,6 +19,8 @@ services:
     build: .
     image: dew-share
     restart: always
+    env_file:
+      - secrets.var
     depends_on:
       dewshare-db:
         condition: service_healthy
@@ -52,24 +30,10 @@ services:
     volumes:
       - ./static:/app/static
     networks:
-      - traefik-internet
       - internal
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=traefik-internet
-      # HTTPS router
-      - traefik.http.routers.dew-share.entrypoints=websecure
-      - traefik.http.routers.dew-share.rule=Host(`fileshare.site.com`)
-      - traefik.http.routers.dew-share.tls=true
-      - traefik.http.routers.dew-share.tls.certresolver=zgaf
-      - traefik.http.services.dew-share.loadbalancer.server.port=80
 
 volumes:
   db-data:
-  traefik-certs:
 
 networks:
-  traefik-internet:
-    name: traefik-internet
   internal:
-    internal: true
