@@ -1,2 +1,31 @@
-backup.sql
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# IDEs / Editors
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+*.swp
+*.swo
+
+# Environment / Secrets
+.env
+.env.*
 secrets.var
+
+# Project Specific
+backup.sql
