@@ -358,7 +358,7 @@ export const register = (name, password) =>
   apiFetch('/api_v2/users/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, hashed_password: password }),
+    body: JSON.stringify({ name, password }),
   })
 
 // Upload — returns a promise that resolves on completion
@@ -415,78 +415,6 @@ export const updateModFile = (id, formData, onProgress) =>
     xhr.onerror = () => reject(new Error('Network error'))
     xhr.send(formData)
   })
-
-const CHUNK_SIZE = 10 * 1024 * 1024 // 10 MB
-
-function generateUploadId() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
-  })
-}
-
-export const uploadModChunked = async (file, metadata, onProgress) => {
-  const uploadId = generateUploadId()
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-  const token = getCookie('Authorization')
-
-  for (let i = 0; i < totalChunks; i++) {
-    const start = i * CHUNK_SIZE
-    const chunk = file.slice(start, start + CHUNK_SIZE)
-    const fd = new FormData()
-    fd.append('upload_id', uploadId)
-    fd.append('chunk_index', i)
-    fd.append('total_chunks', totalChunks)
-    fd.append('filename', file.name)
-    fd.append('chunk', chunk, file.name)
-    fd.append('modDescription', metadata.modDescription ?? ' ')
-    fd.append('modTags', metadata.modTags ?? '')
-    fd.append('modVisibility', metadata.modVisibility ?? true)
-    fd.append('modGameVersion', metadata.modGameVersion ?? '')
-
-    const res = await fetch('/api_v2/upload/mod/chunk', {
-      method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: fd,
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || `HTTP ${res.status}`)
-    }
-    if (onProgress) onProgress(Math.round(((i + 1) / totalChunks) * 100))
-    const data = await res.json()
-    if (data.status === 'complete') return data
-  }
-}
-
-export const updateModFileChunked = async (modId, file, changelog, onProgress) => {
-  const uploadId = generateUploadId()
-  const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-  const token = getCookie('Authorization')
-
-  for (let i = 0; i < totalChunks; i++) {
-    const start = i * CHUNK_SIZE
-    const chunk = file.slice(start, start + CHUNK_SIZE)
-    const fd = new FormData()
-    fd.append('upload_id', uploadId)
-    fd.append('chunk_index', i)
-    fd.append('total_chunks', totalChunks)
-    fd.append('filename', file.name)
-    fd.append('chunk', chunk, file.name)
-    fd.append('changelog', changelog)
-
-    const res = await fetch(`/api_v2/update/mod/${modId}/chunk`, {
-      method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: fd,
-    })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || `HTTP ${res.status}`)
-    }
-    if (onProgress) onProgress(Math.round(((i + 1) / totalChunks) * 100))
-  }
-}
 
 export const uploadModWithProgress = (formData, onProgress) => {
   return new Promise((resolve, reject) => {

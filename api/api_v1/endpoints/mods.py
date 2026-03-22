@@ -11,7 +11,7 @@ from db.session import SessionLocal
 from internal.auth import get_current_user
 from sqlalchemy.orm import Session
 from internal.limiter import limiter 
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from internal.dewreader import *
@@ -145,11 +145,11 @@ def delete_mod(mod_id: int = 0, db: Session = Depends(get_db), user: str = Depen
 @router.get("/mods/{mod_id}/file")
 @limiter.limit("60/minute")
 def mod_file(request: Request, mod_id: int, db: Session = Depends(get_db)):
-    mod_file = controller.get_mod_file(db, mod_id=mod_id)
+    mod_file = controller.get_mod_file(db, mod_id=mod_id, request=request)
 
-    if mod_file:
-        headers = {'Content-Disposition': 'attachment; filename="{}"'.format(mod_file.modName+".pak"), 'Content-Type': 'application/octet-stream'}
-        return Response(mod_file.modFile, headers=headers, media_type='application/octet-stream')
+    if mod_file and mod_file.modFileName:
+        file_path = f"/app/static/mods/pak/{mod_id}/{mod_file.modFileName}"
+        return FileResponse(file_path, filename=mod_file.modName + ".pak", media_type='application/octet-stream')
 
     else:
         raise HTTPException(status_code=400, detail="Mod file not found")
