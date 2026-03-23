@@ -16,17 +16,21 @@ export const useAuthStore = create((set, get) => ({
   user: null,
   token: getTokenFromCookie(),
   loading: false,
+  initialized: false,
 
   init: async () => {
     const token = getTokenFromCookie()
-    if (!token) return
+    if (!token) {
+      set({ initialized: true })
+      return
+    }
     set({ loading: true })
     try {
       const user = await getCurrentUser()
-      set({ user, token, loading: false })
+      set({ user, token, loading: false, initialized: true })
     } catch {
       removeCookie('Authorization')
-      set({ user: null, token: null, loading: false })
+      set({ user: null, token: null, loading: false, initialized: true })
     }
   },
 

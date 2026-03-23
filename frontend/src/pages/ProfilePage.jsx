@@ -34,6 +34,10 @@ export default function ProfilePage() {
   const [avatarUploading, setAvatarUploading] = useState(false)
   const avatarInputRef = useRef(null)
 
+  const initialized = useAuthStore((s) => s.initialized)
+
+  if (!initialized) return null
+
   if (!user) {
     navigate('/login')
     return null
