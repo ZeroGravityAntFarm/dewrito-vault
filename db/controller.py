@@ -725,13 +725,18 @@ def get_user_mods_public(db: Session, user: str, skip: int = 0, limit: int = 100
     return db.query(*[c for c in models.Mod.__table__.c if c.name != 'modFile']).filter(models.Mod.owner_id == user.id).filter(models.Mod.notVisible == False).offset(skip).limit(limit).all()
 
 
-#Case insensitive search for map name, author, or description
+#Case insensitive search for mod name, author, tags, or description
 def search_mods(db: Session, search_text: str):
-    mod_data = db.query(*[c for c in models.Mod.__table__.c]).filter(func.lower(models.Mod.modName).contains(search_text.lower()) | func.lower(models.Mod.modTags).contains(search_text.lower()) | func.lower(models.Mod.modAuthor).contains(search_text.lower()) | func.lower(models.Mod.modDescription).contains(search_text.lower())).filter(models.Mod.notVisible == False).all()
+    mod_data = db.query(*[c for c in models.Mod.__table__.c]).filter(
+        func.lower(models.Mod.modName).contains(search_text.lower()) |
+        func.lower(models.Mod.modTags).contains(search_text.lower()) |
+        func.lower(models.Mod.modAuthor).contains(search_text.lower()) |
+        func.lower(models.Mod.modDescription).contains(search_text.lower())
+    ).filter(models.Mod.notVisible == False).all()
 
     if mod_data:
         return mod_data
-    
+
     else:
         return None
 
