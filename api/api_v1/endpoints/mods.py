@@ -11,6 +11,7 @@ from internal.limiter import limiter
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List
+from pathlib import Path
 import re
 
 
@@ -154,8 +155,13 @@ def read_mod_file(request: Request, mod_id: int, db: Session = Depends(get_db)):
     mod = controller.get_mod_file(db, mod_id=mod_id, request=request)
 
     if mod:
+        mod_dir = Path("/app/static/mods/pak/" + str(mod.id))
+        pak_file = mod_dir / mod.modFileName
+        if not pak_file.exists():
+            raise HTTPException(status_code=404, detail="Mod file not found on disk")
+        file_data = pak_file.read_bytes()
         headers = {'Content-Disposition': 'attachment; filename="{}"'.format(mod.modFileName)}
-        return Response(mod.modFile, headers=headers, media_type='application/octet-stream')
+        return Response(file_data, headers=headers, media_type='application/octet-stream')
 
     else:
         raise HTTPException(status_code=400, detail="Mod file not found")
