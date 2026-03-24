@@ -1,0 +1,4 @@
+services:
+  app:
+    volumes:
+      - /mnt/user/Dewrito-Vault/fileshare/static:/app/static
