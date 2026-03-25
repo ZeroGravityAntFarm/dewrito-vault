@@ -46,19 +46,16 @@ export default function ProfilePage() {
   const { data: maps, isLoading: mapsLoading } = useQuery({
     queryKey: ['userMaps'],
     queryFn: getUserMaps,
-    enabled: tab === 'maps',
   })
 
   const { data: mods, isLoading: modsLoading } = useQuery({
     queryKey: ['userMods'],
     queryFn: getUserMods,
-    enabled: tab === 'mods',
   })
 
   const { data: webhooks, isLoading: webhooksLoading } = useQuery({
     queryKey: ['userWebhooks'],
     queryFn: getWebhooks,
-    enabled: tab === 'webhooks',
   })
 
   async function handleSave() {
