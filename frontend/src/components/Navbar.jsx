@@ -1,16 +1,33 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/auth'
 
 export default function Navbar({ onMenuToggle, onUpload }) {
   const { user, logout } = useAuthStore()
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
+  const location = useLocation()
+
+  function getPlaceholder() {
+    const path = location.pathname
+    if (path.startsWith('/mods')) return 'Search mods...'
+    if (path.startsWith('/prefabs')) return 'Search prefabs...'
+    return 'Search maps...'
+  }
 
   function handleSearch(e) {
     e.preventDefault()
     const q = search.trim()
-    if (q) navigate(`/maps?q=${encodeURIComponent(q)}`)
+    if (!q) return
+
+    const path = location.pathname
+    if (path.startsWith('/mods')) {
+      navigate(`/mods?q=${encodeURIComponent(q)}`)
+    } else if (path.startsWith('/prefabs')) {
+      navigate(`/prefabs?q=${encodeURIComponent(q)}`)
+    } else {
+      navigate(`/maps?q=${encodeURIComponent(q)}`)
+    }
   }
 
   return (
@@ -47,7 +64,7 @@ export default function Navbar({ onMenuToggle, onUpload }) {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search maps and mods..."
+            placeholder={getPlaceholder()}
             className="input pl-9 py-1.5 text-sm"
           />
         </div>
