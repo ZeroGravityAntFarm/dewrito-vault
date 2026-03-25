@@ -210,12 +210,12 @@ def update_mod_file(
 
     modFile = None
     for file in files:
-        if file.filename.endswith('.zip'):
+        if file.filename.endswith('.pak'):
             modFile = file
             break
 
     if not modFile:
-        raise HTTPException(status_code=400, detail="Mod .zip file required.")
+        raise HTTPException(status_code=400, detail="Mod .pak file required.")
 
     modContents = modFile.file.read()
     modFile.file.close()
