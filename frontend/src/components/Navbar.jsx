@@ -95,8 +95,14 @@ export default function Navbar({ onMenuToggle, onUpload }) {
               <span className="hidden sm:inline">Mod</span>
             </button>
 
-            <Link to="/profile" className="btn-secondary text-xs px-3 py-1 no-underline">
-              {user.name}
+            <Link to="/profile" className="btn-secondary text-xs px-3 py-1 no-underline flex items-center gap-2">
+              <img
+                src={`/content/avatars/${user.id}.jpg`}
+                alt={`${user.name} avatar`}
+                className="w-6 h-6 rounded-full object-cover border border-border"
+                onError={(e) => { e.currentTarget.src = '/content/default/forge.jpg' }}
+              />
+              <span className="truncate max-w-[6rem]">{user.name}</span>
             </Link>
             <button onClick={logout} className="btn-danger text-xs px-3 py-1">
               Logout
