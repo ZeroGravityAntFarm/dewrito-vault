@@ -11,7 +11,7 @@ export default function AboutPage() {
       <div className="card p-6 space-y-4">
         <p className="text-[#cdd9e5] text-sm leading-relaxed">
           Dewrito Share is a community-run fileshare for{' '}
-          <a href="https://github.com/ElDewrito/ElDewrito" target="_blank" rel="noopener noreferrer">
+          <a href="https://eldewrito.info/" target="_blank" rel="noopener noreferrer">
             ElDewrito
           </a>
           , a fan-made Halo Online mod. Share your custom maps and mods with the community.
