@@ -154,7 +154,7 @@ export default function Sidebar({ open, onClose }) {
           Status
         </a>
         <a
-          href="https://discord.gg/PxPNNteChR"
+          href="https://discord.gg/CPc7Gf7TPf"
           target="_blank"
           rel="noopener noreferrer"
           className="nav-link text-xs"
