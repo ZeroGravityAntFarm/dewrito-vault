@@ -96,10 +96,10 @@ export default function UserProfilePage() {
       <div>
         <div className="border-b border-border flex mb-6">
           <Tab active={tab === 'maps'} onClick={() => setTab('maps')}>
-            Maps {maps?.length != null ? `(${maps.length})` : ''}
+            Maps {stats?.maps != null ? `(${stats.maps})` : maps?.length != null ? `(${maps.length})` : ''}
           </Tab>
           <Tab active={tab === 'mods'} onClick={() => setTab('mods')}>
-            Mods {mods?.length != null ? `(${mods.length})` : ''}
+            Mods {stats?.mods != null ? `(${stats.mods})` : mods?.length != null ? `(${mods.length})` : ''}
           </Tab>
         </div>
 
