@@ -784,19 +784,24 @@ def validate_user_mod_file(db: Session, user_id: int, mod_id: int):
         return False
 
 
-#Update mod file size. We don't need user ID as calling function has already auth'd. 
+#Update mod file size and optionally filename. We don't need user ID as calling function has already auth'd.
 #DO NOT USE THIS OUT OF THE ABOVE CONTEXT
-def update_mod_size(db: Session, mod_id: int, newSize: int):
+def update_mod_size(db: Session, mod_id: int, newSize: int, newFilename: str = None):
     mod = db.query(models.Mod).filter(models.Mod.id == mod_id).first()
 
     if mod:
+        old_filename = mod.modFileName
         mod.modFileSize = newSize
         mod.modVersion += 1
-        mod.time_updated=datetime.utcnow(),
+        mod.time_updated = datetime.utcnow()
+
+        if newFilename and newFilename != old_filename:
+            mod.modFileName = newFilename
 
         db.commit()
 
-        return True
+        # Return old filename when updating name, otherwise return truthy success flag
+        return old_filename if newFilename else True
 
     else:
         return False
