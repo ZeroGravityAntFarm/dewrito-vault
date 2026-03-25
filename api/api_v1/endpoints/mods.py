@@ -12,6 +12,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from typing import List
 from pathlib import Path
+from io import BytesIO
+import shutil
 import re
 
 
@@ -221,7 +223,17 @@ def update_mod_file(
     modFile.file.close()
 
     newSize = len(modContents)
-    controller.update_mod_size(db, mod_id, newSize)
+    old_filename = controller.update_mod_size(db, mod_id, newSize, newFilename=modFile.filename)
+
+    # Write new pak file to disk, removing the old one if the filename changed
+    mod_dir = Path("/app/static/mods/pak/" + str(mod_id))
+    mod_dir.mkdir(parents=True, exist_ok=True)
+    if old_filename and old_filename != modFile.filename:
+        old_path = mod_dir / old_filename
+        if old_path.exists():
+            old_path.unlink()
+    with open(mod_dir / modFile.filename, "wb") as f:
+        shutil.copyfileobj(BytesIO(modContents), f, 128 * 1024)
 
     entry = _remove_html(changelog)[:2000]
     controller.create_changelog_entry(db, "mod", mod_id, entry, user.id)
