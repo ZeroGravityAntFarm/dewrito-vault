@@ -416,6 +416,13 @@ export const updateModFile = (id, formData, onProgress) =>
     xhr.send(formData)
   })
 
+export const updateModFileChunked = (id, file, changelog, onProgress) => {
+  const fd = new FormData()
+  fd.append('files', file)
+  fd.append('changelog', changelog)
+  return updateModFile(id, fd, onProgress)
+}
+
 export const uploadModWithProgress = (formData, onProgress) => {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
@@ -435,6 +442,8 @@ export const uploadModWithProgress = (formData, onProgress) => {
     xhr.send(formData)
   })
 }
+
+export const uploadModChunked = uploadModWithProgress
 
 // Cookie helpers (exported for auth store)
 export function setCookie(name, value, days) {
