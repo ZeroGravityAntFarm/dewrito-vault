@@ -6,6 +6,7 @@ from starlette.staticfiles import StaticFiles
 from api.api_v1.api import api_router
 from db.models import models
 from db.session import engine
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from internal.limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
@@ -19,6 +20,12 @@ import hashlib
 MAX_UPLOAD_BYTES = 4_831_838_208  # 4.5 GB
 
 models.Base.metadata.create_all(bind=engine)
+
+# Column migrations for existing databases
+with engine.connect() as _conn:
+    _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS map_tags TEXT"))
+    _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS mod_tags TEXT"))
+    _conn.commit()
 
 #Set tmp mount to location on a larger disk
 tempfile.tempdir = "/tmp"

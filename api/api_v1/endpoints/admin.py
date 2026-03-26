@@ -1,4 +1,5 @@
 import os
+import json
 import shutil
 from fastapi import APIRouter, Depends, HTTPException, Form
 from db.session import SessionLocal
@@ -58,10 +59,23 @@ def promote_user(user_id: int, db: Session = Depends(get_db), admin=Depends(get_
     return {"id": user.id, "is_admin": user.is_admin}
 
 
+@router.get("/tags")
+def get_tags_public(db: Session = Depends(get_db)):
+    settings = controller.get_or_create_settings(db)
+    return {
+        "map_tags": json.loads(settings.map_tags or "[]"),
+        "mod_tags": json.loads(settings.mod_tags or "[]"),
+    }
+
+
 @router.get("/admin/settings")
 def get_settings(db: Session = Depends(get_db), admin=Depends(get_current_admin)):
     settings = controller.get_or_create_settings(db)
-    return {"registration_enabled": settings.registration_enabled}
+    return {
+        "registration_enabled": settings.registration_enabled,
+        "map_tags": json.loads(settings.map_tags or "[]"),
+        "mod_tags": json.loads(settings.mod_tags or "[]"),
+    }
 
 
 @router.patch("/admin/settings")
@@ -74,6 +88,45 @@ def update_settings(
     settings.registration_enabled = registration_enabled
     db.commit()
     return {"registration_enabled": settings.registration_enabled}
+
+
+@router.post("/admin/settings/tags/{tag_type}")
+def add_tag(
+    tag_type: str,
+    tag: str = Form(...),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    if tag_type not in ("map", "mod"):
+        raise HTTPException(status_code=400, detail="tag_type must be 'map' or 'mod'")
+    tag = tag.strip()
+    if not tag:
+        raise HTTPException(status_code=400, detail="Tag cannot be empty")
+    settings = controller.get_or_create_settings(db)
+    col = f"{tag_type}_tags"
+    tags = json.loads(getattr(settings, col) or "[]")
+    if tag not in tags:
+        tags.append(tag)
+        setattr(settings, col, json.dumps(tags))
+        db.commit()
+    return {"map_tags": json.loads(settings.map_tags or "[]"), "mod_tags": json.loads(settings.mod_tags or "[]")}
+
+
+@router.delete("/admin/settings/tags/{tag_type}")
+def remove_tag(
+    tag_type: str,
+    tag: str = Form(...),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    if tag_type not in ("map", "mod"):
+        raise HTTPException(status_code=400, detail="tag_type must be 'map' or 'mod'")
+    settings = controller.get_or_create_settings(db)
+    col = f"{tag_type}_tags"
+    tags = [t for t in json.loads(getattr(settings, col) or "[]") if t != tag]
+    setattr(settings, col, json.dumps(tags))
+    db.commit()
+    return {"map_tags": json.loads(settings.map_tags or "[]"), "mod_tags": json.loads(settings.mod_tags or "[]")}
 
 
 @router.get("/admin/stats")
