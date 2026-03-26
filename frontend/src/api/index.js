@@ -234,8 +234,8 @@ export const getUserPrefabs = () =>
 export const updateUser = (data) =>
   apiFetch('/api_v2/users', {
     method: 'PATCH',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    headers: authHeaders(),
+    body: new URLSearchParams({ userAbout: data.about ?? '' }),
   })
 
 // Webhooks

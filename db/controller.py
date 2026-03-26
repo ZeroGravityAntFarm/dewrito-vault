@@ -216,7 +216,8 @@ def get_user_stats(db: Session, user_id: int):
 #Update user data
 def update_user(db: Session, user: str, userName: str, userEmail: str, userAbout: str):
     user = db.query(models.User).filter(models.User.id == user.id).first()
-    user.name = userName
+    if userName and not userName.isspace():
+        user.name = userName
     user.about = userAbout
     db.commit()
 
