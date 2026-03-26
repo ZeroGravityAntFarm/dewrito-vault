@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getUserMaps, getUserMods, updateUser, uploadAvatar, getWebhooks, createWebhook, updateWebhook, deleteWebhook, get2FAStatus, setup2FA, enable2FA, disable2FA, changePassword } from '../api'
@@ -36,27 +36,29 @@ export default function ProfilePage() {
 
   const initialized = useAuthStore((s) => s.initialized)
 
-  if (!initialized) return null
-
-  if (!user) {
-    navigate('/login')
-    return null
-  }
+  useEffect(() => {
+    if (initialized && !user) navigate('/login')
+  }, [initialized, user, navigate])
 
   const { data: maps, isLoading: mapsLoading } = useQuery({
     queryKey: ['userMaps'],
     queryFn: getUserMaps,
+    enabled: !!user,
   })
 
   const { data: mods, isLoading: modsLoading } = useQuery({
     queryKey: ['userMods'],
     queryFn: getUserMods,
+    enabled: !!user,
   })
 
   const { data: webhooks, isLoading: webhooksLoading } = useQuery({
     queryKey: ['userWebhooks'],
     queryFn: getWebhooks,
+    enabled: !!user,
   })
+
+  if (!initialized || !user) return null
 
   async function handleSave() {
     try {

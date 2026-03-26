@@ -68,8 +68,8 @@ def create_user(request: Request, user: schemas.UserCreate, db: Session = Depend
 
 
 #Delete a user
-@router.delete("/users/{user_id}")
-def get_me(user: str = Depends(get_current_user), db: Session = Depends(get_db)):
+@router.delete("/users/me")
+def delete_me(user: str = Depends(get_current_user), db: Session = Depends(get_db)):
     status, msg = controller.delete_user(db, user)
     
     if status:

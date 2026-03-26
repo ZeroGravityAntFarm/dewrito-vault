@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/auth'
 import { useNavigate } from 'react-router-dom'
@@ -24,12 +24,12 @@ function formatBytes(bytes) {
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user)
   const navigate = useNavigate()
-  const qc = useQueryClient()
 
-  if (!user?.is_admin) {
-    navigate('/')
-    return null
-  }
+  useEffect(() => {
+    if (!user?.is_admin) navigate('/')
+  }, [user, navigate])
+
+  if (!user?.is_admin) return null
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">

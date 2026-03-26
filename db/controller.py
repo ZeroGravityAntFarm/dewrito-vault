@@ -25,6 +25,8 @@ logger = logging.getLogger('uvicorn')
 
 #Authenticate a user
 def authenticate_user(db, username: str, password: str, client_host: str):
+    if not username or username.isspace():
+        return False
     user = get_user_auth(db, username)
     
     #Check if user exists
