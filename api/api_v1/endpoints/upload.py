@@ -41,7 +41,7 @@ def send_map_webhooks(webhooks, mapId: int):
     if webhooks:
         for webhook in webhooks:
             #logger.info(webhook.webhookname)
-            wh = DiscordWebhook(url=webhook.webhookurl, content="https://fileshare.zgaf.io/api_v2/mapview?mapId=" + str(mapId))
+            wh = DiscordWebhook(url=webhook.webhookurl, content="https://fileshare.zgaf.io/maps/" + str(mapId))
             wh.execute()
             time.sleep(0.5)
 
@@ -51,7 +51,7 @@ def send_mod_webhooks(webhooks, modId: int):
     if webhooks:
         for webhook in webhooks:
             #logger.info(webhook.webhookname)
-            wh = DiscordWebhook(url=webhook.webhookurl, content="https://fileshare.zgaf.io/api_v2/modview?modId=" + str(modId))
+            wh = DiscordWebhook(url=webhook.webhookurl, content="https://fileshare.zgaf.io/mods/" + str(modId))
             wh.execute()
             time.sleep(0.5)
 
