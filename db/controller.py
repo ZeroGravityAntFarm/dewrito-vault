@@ -1098,6 +1098,32 @@ def get_oldest_variants(db: Session):
     return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(asc(models.Variant.time_created)).all()
 
 
+#Get all maps a user has upvoted
+def get_user_upvoted_maps(db: Session, user_id: int):
+    map_cols = [c for c in models.Map.__table__.c if c.name != 'mapFile']
+    return (
+        db.query(*map_cols)
+        .join(models.Vote, models.Vote.mapId == models.Map.id)
+        .filter(models.Vote.userId == user_id)
+        .filter(models.Vote.vote == True)
+        .filter(models.Map.notVisible == False)
+        .all()
+    )
+
+
+#Get all mods a user has upvoted
+def get_user_upvoted_mods(db: Session, user_id: int):
+    mod_cols = [c for c in models.Mod.__table__.c if c.name != 'modFile']
+    return (
+        db.query(*mod_cols)
+        .join(models.ModVote, models.ModVote.modId == models.Mod.id)
+        .filter(models.ModVote.userId == user_id)
+        .filter(models.ModVote.vote == True)
+        .filter(models.Mod.notVisible == False)
+        .all()
+    )
+
+
 #Returns map downvotes and upvotes
 def get_vote(db: Session, map_id: int):
     mapUpVotes = db.query(*[c for c in models.Vote.__table__.c if c.name != 'id']).filter_by(mapId=map_id).filter_by(vote=True).count()

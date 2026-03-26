@@ -15,6 +15,18 @@ def get_db():
     finally:
         db.close()
 
+@router.get("/votes/me/maps")
+def get_my_upvoted_maps(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    maps = controller.get_user_upvoted_maps(db, user.id)
+    return [dict(row._mapping) for row in maps]
+
+
+@router.get("/votes/me/mods")
+def get_my_upvoted_mods(user=Depends(get_current_user), db: Session = Depends(get_db)):
+    mods = controller.get_user_upvoted_mods(db, user.id)
+    return [dict(row._mapping) for row in mods]
+
+
 @router.get("/vote/mod/{mod_id}/")
 def get_mod_vote(mod_id: int, db: Session = Depends(get_db)):
     if not mod_id:

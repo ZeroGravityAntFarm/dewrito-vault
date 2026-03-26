@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getUserMaps, getUserMods, updateUser, uploadAvatar, getWebhooks, createWebhook, updateWebhook, deleteWebhook, get2FAStatus, setup2FA, enable2FA, disable2FA, changePassword } from '../api'
+import { getUserMaps, getUserMods, updateUser, uploadAvatar, getWebhooks, createWebhook, updateWebhook, deleteWebhook, get2FAStatus, setup2FA, enable2FA, disable2FA, changePassword, getUpvotedMaps, getUpvotedMods } from '../api'
 import { useAuthStore } from '../store/auth'
 import { MapCard, ModCard, CardGrid, SkeletonCard } from '../components/ContentCard'
 
@@ -56,6 +56,18 @@ export default function ProfilePage() {
     queryKey: ['userWebhooks'],
     queryFn: getWebhooks,
     enabled: !!user,
+  })
+
+  const { data: upvotedMaps, isLoading: upvotedMapsLoading } = useQuery({
+    queryKey: ['upvotedMaps'],
+    queryFn: getUpvotedMaps,
+    enabled: !!user && tab === 'liked',
+  })
+
+  const { data: upvotedMods, isLoading: upvotedModsLoading } = useQuery({
+    queryKey: ['upvotedMods'],
+    queryFn: getUpvotedMods,
+    enabled: !!user && tab === 'liked',
   })
 
   if (!initialized || !user) return null
@@ -182,6 +194,9 @@ export default function ProfilePage() {
         <Tab active={tab === 'security'} onClick={() => setTab('security')}>
           Security
         </Tab>
+        <Tab active={tab === 'liked'} onClick={() => setTab('liked')}>
+          Liked
+        </Tab>
       </div>
 
       {tab === 'maps' && (
@@ -206,6 +221,29 @@ export default function ProfilePage() {
 
       {tab === 'security' && (
         <SecurityTab user={user} qc={qc} />
+      )}
+
+      {tab === 'liked' && (
+        <div className="space-y-8">
+          <section>
+            <h2 className="text-sm font-semibold text-[#8b949e] uppercase tracking-wider mb-3">Liked Maps</h2>
+            {upvotedMapsLoading
+              ? <CardGrid>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</CardGrid>
+              : upvotedMaps?.length
+                ? <CardGrid>{upvotedMaps.map((m) => <MapCard key={m.id} map={m} />)}</CardGrid>
+                : <p className="text-[#8b949e] text-center py-8">No liked maps yet.</p>
+            }
+          </section>
+          <section>
+            <h2 className="text-sm font-semibold text-[#8b949e] uppercase tracking-wider mb-3">Liked Mods</h2>
+            {upvotedModsLoading
+              ? <CardGrid>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</CardGrid>
+              : upvotedMods?.length
+                ? <CardGrid>{upvotedMods.map((m) => <ModCard key={m.id} mod={m} />)}</CardGrid>
+                : <p className="text-[#8b949e] text-center py-8">No liked mods yet.</p>
+            }
+          </section>
+        </div>
       )}
     </div>
   )
