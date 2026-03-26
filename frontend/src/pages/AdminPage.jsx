@@ -265,7 +265,7 @@ function UsersCard({ currentUserId }) {
 
   function startRename(u) {
     setRenamingId(u.id)
-    setRenameValue(u.name)
+    setRenameValue(u.name?.trim() ?? '')
     setRenameError(null)
   }
 
@@ -335,10 +335,10 @@ function UsersCard({ currentUserId }) {
                     ) : (
                       <button
                         onClick={() => startRename(u)}
-                        className="text-text-primary font-medium hover:text-accent transition-colors text-left"
+                        className="text-text-primary font-medium hover:text-accent transition-colors text-left min-w-[4rem] min-h-[1.25rem] block"
                         title="Click to rename"
                       >
-                        {u.name || <span className="text-text-muted italic">(blank)</span>}
+                        {u.name?.trim() || <span className="text-text-muted italic">(blank)</span>}
                       </button>
                     )}
                   </td>
