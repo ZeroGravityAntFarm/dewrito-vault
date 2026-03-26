@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage'
 import UserProfilePage from './pages/UserProfilePage'
 import AboutPage from './pages/AboutPage'
 import AdminPage from './pages/AdminPage'
+import SearchPage from './pages/SearchPage'
 
 export default function App() {
   const init = useAuthStore((s) => s.init)
@@ -41,6 +42,9 @@ export default function App() {
           <Route path="mods/downloaded" element={<ModsPage sort="downloaded" />} />
           <Route path="mods/popular" element={<ModsPage sort="popular" />} />
           <Route path="mods/:id" element={<ModDetail />} />
+
+          {/* Search */}
+          <Route path="search" element={<SearchPage />} />
 
           {/* Auth */}
           <Route path="login" element={<LoginPage />} />

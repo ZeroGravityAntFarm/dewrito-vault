@@ -505,12 +505,30 @@ def delete_map(db: Session, map_id: int, user: str):
 
 # --- Admin / SiteSettings helpers ---
 
+_DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Race', 'Mini Games', 'Enhanced', '0.7', '0.5.1']
+_DEFAULT_MOD_TAGS = ['vehicle', 'animation', 'object', 'armor', 'ui', 'hud', 'biped', 'weapon', 'campaign', 'mode', 'ability', 'map', 'ai', 'cosmetic', 'misc']
+
 def get_or_create_settings(db: Session):
     settings = db.query(models.SiteSettings).filter(models.SiteSettings.id == 1).first()
     if not settings:
-        settings = models.SiteSettings(id=1, registration_enabled=True)
+        settings = models.SiteSettings(
+            id=1,
+            registration_enabled=True,
+            map_tags=json.dumps(_DEFAULT_MAP_TAGS),
+            mod_tags=json.dumps(_DEFAULT_MOD_TAGS),
+        )
         db.add(settings)
         db.commit()
+    else:
+        changed = False
+        if settings.map_tags is None:
+            settings.map_tags = json.dumps(_DEFAULT_MAP_TAGS)
+            changed = True
+        if settings.mod_tags is None:
+            settings.mod_tags = json.dumps(_DEFAULT_MOD_TAGS)
+            changed = True
+        if changed:
+            db.commit()
     return settings
 
 
@@ -804,7 +822,7 @@ def update_mod_size(db: Session, mod_id: int, newSize: int, newFilename: str = N
         return old_filename if newFilename else True
 
     else:
-        return False
+        return None
 
 
 #Get all mods

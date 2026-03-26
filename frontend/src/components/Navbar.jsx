@@ -18,16 +18,7 @@ export default function Navbar({ onMenuToggle, onUpload }) {
   function handleSearch(e) {
     e.preventDefault()
     const q = search.trim()
-    if (!q) return
-
-    const path = location.pathname
-    if (path.startsWith('/mods')) {
-      navigate(`/mods?q=${encodeURIComponent(q)}`)
-    } else if (path.startsWith('/prefabs')) {
-      navigate(`/prefabs?q=${encodeURIComponent(q)}`)
-    } else {
-      navigate(`/maps?q=${encodeURIComponent(q)}`)
-    }
+    if (q) navigate(`/search?q=${encodeURIComponent(q)}`)
   }
 
   return (

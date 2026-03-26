@@ -1,9 +1,18 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { uploadMap, uploadPrefab, uploadModChunked, addImages } from '../api'
+import { useQuery } from '@tanstack/react-query'
+import { uploadMap, uploadPrefab, uploadModWithProgress, getTags } from '../api'
 import TagPicker, { MAP_TAGS, MOD_TAGS } from './TagPicker'
 import { VersionPicker } from './TagPicker'
 import FileInput from './FileInput'
+
+function useTags() {
+  const { data } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
+  return {
+    mapTags: data?.map_tags ?? MAP_TAGS,
+    modTags: data?.mod_tags ?? MOD_TAGS,
+  }
+}
 
 const PREFAB_TAGS = ['Weapons', 'Building', 'Foliage', 'Spawn', 'Vehicles', 'Lettering', 'Fx', 'Art', 'Misc']
 
@@ -30,6 +39,7 @@ function ProgressBar({ value }) {
 }
 
 function MapUpload({ onClose }) {
+  const { mapTags } = useTags()
   const [tags, setTags] = useState(['Slayer'])
   const [desc, setDesc] = useState('')
   const [visible, setVisible] = useState(true)
@@ -88,7 +98,7 @@ function MapUpload({ onClose }) {
         />
       </FormField>
       <FormField label="Tags">
-        <TagPicker tags={MAP_TAGS} selected={tags} onChange={setTags} />
+        <TagPicker tags={mapTags} selected={tags} onChange={setTags} />
       </FormField>
       <label className="flex items-center gap-2 text-sm text-[#cdd9e5] cursor-pointer">
         <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="w-4 h-4 accent-accent" />
@@ -107,6 +117,7 @@ function MapUpload({ onClose }) {
 }
 
 function ModUpload({ onClose }) {
+  const { modTags } = useTags()
   const [tags, setTags] = useState(['misc'])
   const [gameVersion, setGameVersion] = useState('')
   const [desc, setDesc] = useState('')
@@ -126,22 +137,16 @@ function ModUpload({ onClose }) {
     setLoading(true)
     setStatus(null)
     setProgress(0)
+    const fd = new FormData()
+    fd.append('files', modRef.current.files[0])
+    fd.append('modTags', tags.join(','))
+    fd.append('modDescription', desc)
+    fd.append('modGameVersion', gameVersion)
+    fd.append('modVisibility', visible)
+    for (const f of imagesRef.current?.files ?? []) fd.append('files', f)
 
     try {
-      const result = await uploadModChunked(
-        modRef.current.files[0],
-        { modDescription: desc, modTags: tags.join(','), modVisibility: visible, modGameVersion: gameVersion },
-        setProgress,
-      )
-
-      // Upload images separately if any were selected
-      const imageFiles = Array.from(imagesRef.current?.files ?? [])
-      if (imageFiles.length > 0 && result?.mod_id) {
-        const imgFd = new FormData()
-        for (const f of imageFiles) imgFd.append('files', f)
-        await addImages('mods', result.mod_id, imgFd)
-      }
-
+      await uploadModWithProgress(fd, setProgress)
       setStatus({ success: true })
       setTimeout(() => { onClose(); navigate('/mods/newest') }, 1500)
     } catch (err) {
@@ -173,7 +178,7 @@ function ModUpload({ onClose }) {
         <VersionPicker value={gameVersion} onChange={setGameVersion} />
       </FormField>
       <FormField label="Tags">
-        <TagPicker tags={MOD_TAGS} selected={tags} onChange={setTags} />
+        <TagPicker tags={modTags} selected={tags} onChange={setTags} />
       </FormField>
       <label className="flex items-center gap-2 text-sm text-[#cdd9e5] cursor-pointer">
         <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="w-4 h-4 accent-accent" />

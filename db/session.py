@@ -4,11 +4,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import database_exists, create_database
 
-db_host = os.getenv("DB_HOST", "")
-db_port = os.getenv("DB_PORT", "")
-db_database = os.getenv("DB_DATABASE", "")
-db_user = os.getenv("DB_USER", "")
-db_password = os.getenv("DB_PASSWORD", "")
+db_host = "dewshare-db"
+db_port = "5432"
+db_database = "postgres"
+db_user = "dew"
+db_password = "zgafforever2023117"
 
 SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://{}:{}@{}:{}/{}".format(db_user, db_password, db_host, db_port, db_database)
 

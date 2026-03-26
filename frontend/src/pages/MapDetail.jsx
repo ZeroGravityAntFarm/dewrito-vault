@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMap, getUser, getVotes, castVote, timeSince, updateMap, getMapChangelog, updateMapFile, deleteMap } from '../api'
+import { getMap, getUser, getVotes, castVote, timeSince, updateMap, getMapChangelog, updateMapFile, deleteMap, getTags } from '../api'
 import { useAuthStore } from '../store/auth'
 import { ErrorMessage } from '../components/ContentCard'
 import ImageManager from '../components/ImageManager'
@@ -147,6 +147,9 @@ export default function MapDetail({ legacyQuery }) {
     queryFn: () => getUser(map.owner_id),
     enabled: !!map?.owner_id,
   })
+
+  const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
+  const availableMapTags = tagsData?.map_tags ?? MAP_TAGS
 
   const editMutation = useMutation({
     mutationFn: (data) => updateMap(mapId, data),
@@ -429,7 +432,7 @@ export default function MapDetail({ legacyQuery }) {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs text-[#8b949e]">Tags</label>
-                  <TagPicker tags={MAP_TAGS} selected={editForm.mapTags} onChange={(t) => setEditForm((f) => ({ ...f, mapTags: t }))} />
+                  <TagPicker tags={availableMapTags} selected={editForm.mapTags} onChange={(t) => setEditForm((f) => ({ ...f, mapTags: t }))} />
                 </div>
                 <label className="flex items-center gap-2 text-sm text-[#cdd9e5] cursor-pointer">
                   <input

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, BigInteger, String, LargeBinary, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, BigInteger, String, LargeBinary, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from db.session import Base
@@ -171,6 +171,8 @@ class SiteSettings(Base):
 
     id = Column(Integer, primary_key=True, default=1)
     registration_enabled = Column(Boolean, default=True)
+    map_tags = Column(Text, nullable=True)
+    mod_tags = Column(Text, nullable=True)
 
 
 class Tracking(Base):

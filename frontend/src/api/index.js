@@ -354,6 +354,23 @@ export const adminUpdateSettings = (registrationEnabled) =>
 export const adminGetStats = () =>
   apiFetch('/api_v2/admin/stats', { headers: authHeaders() })
 
+export const getTags = () =>
+  apiFetch('/api_v2/tags')
+
+export const adminAddTag = (tagType, tag) =>
+  apiFetch(`/api_v2/admin/settings/tags/${tagType}`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: new URLSearchParams({ tag }),
+  })
+
+export const adminRemoveTag = (tagType, tag) =>
+  apiFetch(`/api_v2/admin/settings/tags/${tagType}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+    body: new URLSearchParams({ tag }),
+  })
+
 export const register = (name, password) =>
   apiFetch('/api_v2/users/', {
     method: 'POST',

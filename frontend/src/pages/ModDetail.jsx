@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMod, getUser, getModVotes, castModVote, timeSince, updateMod, getModChangelog, updateModFileChunked, deleteMod } from '../api'
+import { getMod, getUser, getModVotes, castModVote, timeSince, updateMod, getModChangelog, updateModFile, deleteMod, getTags } from '../api'
 import { useAuthStore } from '../store/auth'
 import { ErrorMessage } from '../components/ContentCard'
 import ImageManager from '../components/ImageManager'
@@ -138,6 +138,9 @@ export default function ModDetail({ legacyQuery }) {
     enabled: !!mod?.owner_id,
   })
 
+  const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
+  const availableModTags = tagsData?.mod_tags ?? MOD_TAGS
+
   const editMutation = useMutation({
     mutationFn: (data) => updateMod(modId, data),
     onSuccess: () => {
@@ -179,8 +182,11 @@ export default function ModDetail({ legacyQuery }) {
     setUpdateLoading(true)
     setUpdateStatus(null)
     setUpdateProgress(0)
+    const fd = new FormData()
+    fd.append('files', modFileRef.current.files[0])
+    fd.append('changelog', updateChangelog)
     try {
-      await updateModFileChunked(modId, modFileRef.current.files[0], updateChangelog, setUpdateProgress)
+      await updateModFile(modId, fd, setUpdateProgress)
       setUpdateStatus({ success: true })
       qc.invalidateQueries({ queryKey: ['mod', modId] })
       qc.invalidateQueries({ queryKey: ['mod-changelog', modId] })
@@ -409,7 +415,7 @@ export default function ModDetail({ legacyQuery }) {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs text-[#8b949e]">Tags</label>
-                  <TagPicker tags={MOD_TAGS} selected={editForm.modTags} onChange={(t) => setEditForm((f) => ({ ...f, modTags: t }))} />
+                  <TagPicker tags={availableModTags} selected={editForm.modTags} onChange={(t) => setEditForm((f) => ({ ...f, modTags: t }))} />
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-[#8b949e]">Game Version</label>

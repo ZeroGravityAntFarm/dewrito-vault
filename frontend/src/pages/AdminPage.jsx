@@ -9,6 +9,8 @@ import {
   adminGetSettings,
   adminUpdateSettings,
   adminGetStats,
+  adminAddTag,
+  adminRemoveTag,
 } from '../api'
 
 function formatBytes(bytes) {
@@ -34,6 +36,7 @@ export default function AdminPage() {
       <h1 className="text-2xl font-bold text-text-primary">Admin Panel</h1>
       <StatsCard />
       <SettingsCard />
+      <TagsCard />
       <UsersCard currentUserId={user.id} />
     </div>
   )
@@ -108,6 +111,122 @@ function SettingsCard() {
           </button>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function TagsCard() {
+  const qc = useQueryClient()
+  const [mapInput, setMapInput] = useState('')
+  const [modInput, setModInput] = useState('')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: adminGetSettings,
+  })
+
+  const addMutation = useMutation({
+    mutationFn: ({ tagType, tag }) => adminAddTag(tagType, tag),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-settings'] }),
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: ({ tagType, tag }) => adminRemoveTag(tagType, tag),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-settings'] }),
+  })
+
+  function handleAdd(tagType) {
+    const input = tagType === 'map' ? mapInput : modInput
+    const tag = input.trim()
+    if (!tag) return
+    addMutation.mutate({ tagType, tag })
+    if (tagType === 'map') setMapInput('')
+    else setModInput('')
+  }
+
+  function handleKeyDown(e, tagType) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAdd(tagType)
+    }
+  }
+
+  return (
+    <div className="card p-6 space-y-6">
+      <h2 className="text-lg font-semibold text-text-primary">Upload Tags</h2>
+      {isLoading ? (
+        <p className="text-text-muted text-sm">Loading...</p>
+      ) : data ? (
+        <>
+          <TagSection
+            label="Map Tags"
+            tags={data.map_tags ?? []}
+            input={mapInput}
+            onInput={setMapInput}
+            onAdd={() => handleAdd('map')}
+            onKeyDown={(e) => handleKeyDown(e, 'map')}
+            onRemove={(tag) => removeMutation.mutate({ tagType: 'map', tag })}
+            isPending={addMutation.isPending || removeMutation.isPending}
+          />
+          <TagSection
+            label="Mod Tags"
+            tags={data.mod_tags ?? []}
+            input={modInput}
+            onInput={setModInput}
+            onAdd={() => handleAdd('mod')}
+            onKeyDown={(e) => handleKeyDown(e, 'mod')}
+            onRemove={(tag) => removeMutation.mutate({ tagType: 'mod', tag })}
+            isPending={addMutation.isPending || removeMutation.isPending}
+          />
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+function TagSection({ label, tags, input, onInput, onAdd, onKeyDown, onRemove, isPending }) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium text-text-primary">{label}</p>
+      <div className="flex flex-wrap gap-1.5 min-h-[2rem]">
+        {tags.length === 0 && <span className="text-text-muted text-xs italic">No tags yet</span>}
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-surface-2 border border-border text-text-primary"
+          >
+            {tag}
+            <button
+              type="button"
+              onClick={() => onRemove(tag)}
+              disabled={isPending}
+              className="text-text-muted hover:text-red-400 transition-colors disabled:opacity-40 leading-none"
+              aria-label={`Remove ${tag}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => onInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="New tag…"
+          className="input flex-1 text-sm"
+          disabled={isPending}
+        />
+        <button
+          type="button"
+          onClick={onAdd}
+          disabled={isPending || !input.trim()}
+          className="btn-primary text-sm px-4 disabled:opacity-50"
+        >
+          Add
+        </button>
+      </div>
     </div>
   )
 }
