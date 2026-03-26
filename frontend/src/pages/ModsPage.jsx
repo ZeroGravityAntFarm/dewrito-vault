@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { getModsNewest, getModsOldest, getModsDownloaded, getModsPopular, searchMods } from '../api'
+import { getModsNewest, getModsOldest, getModsDownloaded, getModsPopular, searchMods, getTags } from '../api'
 import { ModCard, CardGrid, SkeletonCard, ErrorMessage, EmptyState } from '../components/ContentCard'
 import Pagination from '../components/Pagination'
 import FeaturedBanner from '../components/FeaturedBanner'
 
-const MOD_TAGS = ['Skins', 'Audio', 'HUD', 'Vehicles', 'Weapons', 'Gameplay', 'Maps', 'UI', 'Cosmetic']
+const DEFAULT_MOD_TAGS = ['Skins', 'Audio', 'HUD', 'Vehicles', 'Weapons', 'Gameplay', 'Maps', 'UI', 'Cosmetic']
 
 const MOD_VERSIONS = ['0.7.0', '0.7.1', '0.7.2', '0.6.1', '0.5.1']
 
@@ -39,6 +39,9 @@ export default function ModsPage({ sort = 'newest' }) {
 
   const mods = data?.items ?? []
   const total = data?.total ?? 0
+
+  const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
+  const availableModTags = tagsData?.mod_tags ?? DEFAULT_MOD_TAGS
 
   function setParam(key, value) {
     const p = new URLSearchParams(searchParams)
@@ -86,7 +89,7 @@ export default function ModsPage({ sort = 'newest' }) {
               className="select"
             >
               <option value="">All Tags</option>
-              {MOD_TAGS.map((t) => (
+              {availableModTags.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>

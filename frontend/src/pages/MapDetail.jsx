@@ -12,6 +12,15 @@ import FileInput from '../components/FileInput'
 
 const DEFAULT_IMG = '/content/default/forge.jpg'
 
+function formatTagList(tags) {
+  if (!tags) return ''
+  return tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .join(', ')
+}
+
 function ChangelogTab({ entries }) {
   if (!entries) return <div className="skeleton h-24 rounded-lg" />
   if (!entries.length) return (
@@ -480,7 +489,7 @@ export default function MapDetail({ legacyQuery }) {
                 ['Scenario Objects', map.mapScnrObjectCount],
                 ['Budget Count', map.mapBudgetCount],
                 ['Downloads', map.map_downloads],
-                ['Tag', map.mapTags],
+                ['Tag', formatTagList(map.mapTags)],
                 ['Uploaded', map.time_created ? `${timeSince(map.time_created)} ago` : '—'],
                 ['ID', map.id],
               ].map(([label, value]) => value != null && (

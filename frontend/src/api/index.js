@@ -377,6 +377,13 @@ export const adminRemoveTag = (tagType, tag) =>
     body: new URLSearchParams({ tag }),
   })
 
+export const adminRenameTag = (tagType, oldTag, newTag) =>
+  apiFetch(`/api_v2/admin/settings/tags/${tagType}/rename`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: new URLSearchParams({ old_tag: oldTag, new_tag: newTag }),
+  })
+
 export const adminRenameUser = (userId, newName) =>
   apiFetch(`/api_v2/admin/users/${userId}/rename`, {
     method: 'PATCH',

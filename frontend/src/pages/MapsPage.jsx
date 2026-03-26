@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { getMapsNewest, getMapsDownloaded, getMapsOldest, getMapsPopular, searchMaps } from '../api'
+import { getMapsNewest, getMapsDownloaded, getMapsOldest, getMapsPopular, searchMaps, getTags } from '../api'
 import { MapCard, CardGrid, SkeletonCard, ErrorMessage, EmptyState } from '../components/ContentCard'
 import Pagination from '../components/Pagination'
 import FeaturedBanner from '../components/FeaturedBanner'
@@ -13,7 +13,7 @@ const VERSION_OPTIONS = [
   { label: '0.5.1', value: '0.5.1' },
 ]
 
-const MAP_TAGS = ['Slayer', 'Infection', 'Race', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Mini Games']
+const DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Race', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Mini Games']
 
 const SORT_LABELS = {
   newest: 'Newest',
@@ -49,6 +49,9 @@ export default function MapsPage({ sort = 'newest' }) {
 
   const maps = data?.items ?? []
   const total = data?.total ?? 0
+
+  const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
+  const availableMapTags = tagsData?.map_tags ?? DEFAULT_MAP_TAGS
 
   function setParam(key, value) {
     const p = new URLSearchParams(searchParams)
@@ -96,7 +99,7 @@ export default function MapsPage({ sort = 'newest' }) {
               className="select"
             >
               <option value="">All Tags</option>
-              {MAP_TAGS.map((t) => (
+              {availableMapTags.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>

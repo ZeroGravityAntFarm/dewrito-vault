@@ -1,7 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '../store/auth'
+import { getTags } from '../api'
 
-const MAP_TAGS = ['Slayer', 'Infection', 'Race', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Mini Games']
+const DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Race', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Mini Games']
 
 function SideNavLink({ to, children }) {
   return (
@@ -23,9 +25,12 @@ function SectionLabel({ children }) {
 export default function Sidebar({ open, onClose }) {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
+  const availableMapTags = tagsData?.map_tags ?? DEFAULT_MAP_TAGS
+  const availableModTags = tagsData?.mod_tags ?? []
 
-  function searchTag(tag) {
-    navigate(`/maps/newest?tag=${encodeURIComponent(tag)}`)
+  function searchTag(tag, type = 'maps') {
+    navigate(`/${type}/newest?tag=${encodeURIComponent(tag)}`)
     onClose()
   }
 
@@ -101,15 +106,30 @@ export default function Sidebar({ open, onClose }) {
         <div className="mt-4 border-t border-border pt-3">
           <SectionLabel>Map Tags</SectionLabel>
           <div className="flex flex-wrap gap-1.5 px-3 pb-2">
-            {MAP_TAGS.map((tag) => (
+            {availableMapTags.map((tag) => (
               <button
-                key={tag}
-                onClick={() => searchTag(tag)}
+                key={`map-${tag}`}
+                onClick={() => searchTag(tag, 'maps')}
                 className="badge badge-gray hover:badge-green cursor-pointer transition-colors text-xs"
               >
                 {tag}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="mt-4 border-t border-border pt-3">
+          <SectionLabel>Mod Tags</SectionLabel>
+          <div className="flex flex-wrap gap-1.5 px-3 pb-2">
+            {availableModTags.length > 0 ? availableModTags.map((tag) => (
+              <button
+                key={`mod-${tag}`}
+                onClick={() => searchTag(tag, 'mods')}
+                className="badge badge-gray hover:badge-green cursor-pointer transition-colors text-xs"
+              >
+                {tag}
+              </button>
+            )) : <span className="text-text-muted text-xs italic">No mod tags yet</span>}
           </div>
         </div>
       </div>

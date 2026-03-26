@@ -13,6 +13,15 @@ import FileInput from '../components/FileInput'
 
 const DEFAULT_IMG = '/content/default/forge.jpg'
 
+function formatTagList(tags) {
+  if (!tags) return ''
+  return tags
+    .split(',')
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .join(', ')
+}
+
 function ChangelogTab({ entries }) {
   if (!entries) return <div className="skeleton h-24 rounded-lg" />
   if (!entries.length) return (
@@ -467,7 +476,7 @@ export default function ModDetail({ legacyQuery }) {
                 ['Version', mod.modVersion],
                 ['File Size', mod.modFileSize ? `${(mod.modFileSize / 1024 / 1024).toFixed(2)} MB` : null],
                 ['Downloads', mod.mod_downloads],
-                ['Tag', mod.modTags],
+                ['Tag', formatTagList(mod.modTags)],
                 ['Uploaded', mod.time_created ? `${timeSince(mod.time_created)} ago` : '—'],
                 ['ID', mod.id],
               ].filter(([, v]) => v != null).map(([label, value]) => (

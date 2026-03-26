@@ -136,11 +136,57 @@ def remove_tag(
 ):
     if tag_type not in ("map", "mod"):
         raise HTTPException(status_code=400, detail="tag_type must be 'map' or 'mod'")
+    tag_clean = tag.strip()
     settings = controller.get_or_create_settings(db)
     col = f"{tag_type}_tags"
-    tags = [t for t in json.loads(getattr(settings, col) or "[]") if t != tag]
+    current_tags = [t for t in json.loads(getattr(settings, col) or "[]") if t.strip()]
+    filtered = [t for t in current_tags if t.lower() != tag_clean.lower()]
+    setattr(settings, col, json.dumps(filtered))
+    db.commit()
+
+    # Remove tag from existing map/mod items too
+    controller.remove_tag_from_items(db, tag_type, tag_clean)
+
+    return {"map_tags": json.loads(settings.map_tags or "[]"), "mod_tags": json.loads(settings.mod_tags or "[]")}
+
+
+@router.patch("/admin/settings/tags/{tag_type}/rename")
+def rename_tag(
+    tag_type: str,
+    old_tag: str = Form(...),
+    new_tag: str = Form(...),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    if tag_type not in ("map", "mod"):
+        raise HTTPException(status_code=400, detail="tag_type must be 'map' or 'mod'")
+
+    old_tag = old_tag.strip()
+    new_tag = new_tag.strip()
+
+    if not old_tag or not new_tag:
+        raise HTTPException(status_code=400, detail="Tags cannot be empty")
+
+    if old_tag == new_tag:
+        raise HTTPException(status_code=400, detail="New tag must be different")
+
+    settings = controller.get_or_create_settings(db)
+    col = f"{tag_type}_tags"
+    tags = [t for t in json.loads(getattr(settings, col) or "[]")]
+
+    if old_tag not in tags:
+        raise HTTPException(status_code=404, detail="Tag not found")
+
+    if new_tag in tags:
+        raise HTTPException(status_code=400, detail="Tag already exists")
+
+    tags = [new_tag if t == old_tag else t for t in tags]
     setattr(settings, col, json.dumps(tags))
     db.commit()
+
+    # Update existing map/mod rows that had this tag
+    controller.rename_tags_in_items(db, tag_type, old_tag, new_tag)
+
     return {"map_tags": json.loads(settings.map_tags or "[]"), "mod_tags": json.loads(settings.mod_tags or "[]")}
 
 

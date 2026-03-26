@@ -402,6 +402,71 @@ def update_mod(db: Session, mod_id: int, user: str, modUserDesc: str, modTags: s
     return mod
 
 
+def rename_tags_in_items(db: Session, tag_type: str, old_tag: str, new_tag: str):
+    if tag_type not in ('map', 'mod'):
+        return
+
+    model = models.Map if tag_type == 'map' else models.Mod
+    tag_attr = 'mapTags' if tag_type == 'map' else 'modTags'
+
+    items = db.query(model).filter(func.lower(getattr(model, tag_attr)).contains(old_tag.lower())).all()
+
+    old_tag_lower = old_tag.lower().strip()
+    new_tag_clean = new_tag.strip()
+
+    for item in items:
+        raw = getattr(item, tag_attr) or ''
+        tags = [t.strip() for t in raw.split(',') if t.strip()]
+        if not tags:
+            continue
+
+        changed = False
+        updated_tags = []
+        for t in tags:
+            if t.lower() == old_tag_lower:
+                if new_tag_clean.lower() not in [x.lower() for x in updated_tags]:
+                    updated_tags.append(new_tag_clean)
+                changed = True
+            else:
+                if t.lower() == new_tag_clean.lower():
+                    # preserve existing casing if same logical tag exists
+                    if not any(x.lower() == t.lower() for x in updated_tags):
+                        updated_tags.append(t)
+                else:
+                    updated_tags.append(t)
+
+        if changed:
+            setattr(item, tag_attr, ','.join(updated_tags))
+
+    db.commit()
+
+
+def remove_tag_from_items(db: Session, tag_type: str, old_tag: str):
+    if tag_type not in ('map', 'mod'):
+        return
+
+    model = models.Map if tag_type == 'map' else models.Mod
+    tag_attr = 'mapTags' if tag_type == 'map' else 'modTags'
+
+    old_tag_lower = old_tag.lower().strip()
+
+    items = db.query(model).filter(func.lower(getattr(model, tag_attr)).contains(old_tag_lower)).all()
+
+    for item in items:
+        raw = getattr(item, tag_attr) or ''
+        tags = [t.strip() for t in raw.split(',') if t.strip()]
+        filtered_tags = []
+        for t in tags:
+            if t.lower() == old_tag_lower:
+                continue
+            if t.lower() not in [x.lower() for x in filtered_tags]:
+                filtered_tags.append(t)
+        if ','.join(tags) != ','.join(filtered_tags):
+            setattr(item, tag_attr, ','.join(filtered_tags))
+
+    db.commit()
+
+
 def _apply_map_filters(q, tag=None, version=None):
     if version and version != "all":
         q = q.filter(func.lower(models.Map.gameVersion).contains(version))

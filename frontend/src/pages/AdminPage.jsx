@@ -11,6 +11,7 @@ import {
   adminGetStats,
   adminAddTag,
   adminRemoveTag,
+  adminRenameTag,
   adminRenameUser,
 } from '../api'
 
@@ -133,7 +134,21 @@ function TagsCard() {
 
   const removeMutation = useMutation({
     mutationFn: ({ tagType, tag }) => adminRemoveTag(tagType, tag),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-settings'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      qc.invalidateQueries({ queryKey: ['mods'] })
+      qc.invalidateQueries({ queryKey: ['maps'] })
+    },
+  })
+
+  const renameMutation = useMutation({
+    mutationFn: ({ tagType, oldTag, newTag }) => adminRenameTag(tagType, oldTag, newTag),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      qc.invalidateQueries({ queryKey: ['mods'] })
+      qc.invalidateQueries({ queryKey: ['maps'] })
+    },
+    onError: (err) => alert(`Failed to rename tag: ${err.message}`),
   })
 
   function handleAdd(tagType) {
@@ -161,23 +176,27 @@ function TagsCard() {
         <>
           <TagSection
             label="Map Tags"
+            tagType="map"
             tags={data.map_tags ?? []}
             input={mapInput}
             onInput={setMapInput}
             onAdd={() => handleAdd('map')}
             onKeyDown={(e) => handleKeyDown(e, 'map')}
             onRemove={(tag) => removeMutation.mutate({ tagType: 'map', tag })}
-            isPending={addMutation.isPending || removeMutation.isPending}
+            onRename={(oldTag, newTag) => renameMutation.mutate({ tagType: 'map', oldTag, newTag })}
+            isPending={addMutation.isPending || removeMutation.isPending || renameMutation.isPending}
           />
           <TagSection
             label="Mod Tags"
+            tagType="mod"
             tags={data.mod_tags ?? []}
             input={modInput}
             onInput={setModInput}
             onAdd={() => handleAdd('mod')}
             onKeyDown={(e) => handleKeyDown(e, 'mod')}
             onRemove={(tag) => removeMutation.mutate({ tagType: 'mod', tag })}
-            isPending={addMutation.isPending || removeMutation.isPending}
+            onRename={(oldTag, newTag) => renameMutation.mutate({ tagType: 'mod', oldTag, newTag })}
+            isPending={addMutation.isPending || removeMutation.isPending || renameMutation.isPending}
           />
         </>
       ) : null}
@@ -185,7 +204,7 @@ function TagsCard() {
   )
 }
 
-function TagSection({ label, tags, input, onInput, onAdd, onKeyDown, onRemove, isPending }) {
+function TagSection({ label, tagType, tags, input, onInput, onAdd, onKeyDown, onRemove, onRename, isPending }) {
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium text-text-primary">{label}</p>
@@ -196,10 +215,25 @@ function TagSection({ label, tags, input, onInput, onAdd, onKeyDown, onRemove, i
             key={tag}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-surface-2 border border-border text-text-primary"
           >
-            {tag}
+            <span
+              className="cursor-pointer hover:text-accent"
+              title="Rename tag"
+              onClick={() => {
+                const newTag = prompt('Rename tag', tag)
+                if (newTag && newTag.trim() && newTag.trim() !== tag) {
+                  onRename(tag, newTag.trim())
+                }
+              }}
+            >
+              {tag}
+            </span>
             <button
               type="button"
-              onClick={() => onRemove(tag)}
+              onClick={() => {
+                if (window.confirm(`Remove tag '${tag}'? This cannot be undone.`)) {
+                  onRemove(tag)
+                }
+              }}
               disabled={isPending}
               className="text-text-muted hover:text-red-400 transition-colors disabled:opacity-40 leading-none"
               aria-label={`Remove ${tag}`}
