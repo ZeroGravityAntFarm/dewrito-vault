@@ -35,6 +35,16 @@ def get_mod_vote(mod_id: int, db: Session = Depends(get_db)):
     return {"up_votes": up, "down_votes": down}
 
 
+@router.get("/votes/me/mod/{mod_id}")
+def get_my_mod_vote(mod_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not mod_id:
+        raise HTTPException(status_code=400, detail="Missing mod ID")
+    if not user:
+        raise HTTPException(status_code=400, detail="Not Authenticated")
+    vote = controller.get_user_mod_vote(db, mod_id, user.id)
+    return {"vote": None if vote is None else (1 if vote else 0)}
+
+
 @router.post("/vote/mod/{mod_id}/{vote}")
 def create_mod_vote(mod_id: int, vote: int, user: str = Depends(get_current_user), db: Session = Depends(get_db)):
     if not user:
@@ -62,6 +72,16 @@ def get_vote(map_id: int, db: Session = Depends(get_db)):
     mapUpVotes, mapDownVotes = controller.get_vote(db, map_id)
 
     return {"up_votes": mapUpVotes, "down_votes": mapDownVotes}
+
+
+@router.get("/votes/me/map/{map_id}")
+def get_my_map_vote(map_id: int, user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not map_id:
+        raise HTTPException(status_code=400, detail="Missing map ID")
+    if not user:
+        raise HTTPException(status_code=400, detail="Not Authenticated")
+    vote = controller.get_user_map_vote(db, map_id, user.id)
+    return {"vote": None if vote is None else (1 if vote else 0)}
 
 @router.post("/vote/{map_id}/{vote}")
 def create_vote(map_id: int, vote: int, user: str = Depends(get_current_user), db: Session = Depends(get_db)):

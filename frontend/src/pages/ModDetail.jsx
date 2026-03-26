@@ -54,10 +54,21 @@ function VoteButtons({ modId }) {
     queryKey: ['mod-votes', modId],
     queryFn: () => getModVotes(modId),
   })
+  const { data: myVoteData } = useQuery({
+    queryKey: ['my-mod-vote', modId],
+    queryFn: () => getMyModVote(modId),
+    enabled: !!user,
+  })
+
+  const isUp = myVoteData?.vote === 1
+  const isDown = myVoteData?.vote === 0
 
   const mutation = useMutation({
     mutationFn: (vote) => castModVote(modId, vote),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['mod-votes', modId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['mod-votes', modId] })
+      qc.invalidateQueries({ queryKey: ['my-mod-vote', modId] })
+    },
   })
 
   const loginTitle = 'Log in to vote'
@@ -67,20 +78,20 @@ function VoteButtons({ modId }) {
       <button
         onClick={() => user && mutation.mutate(1)}
         disabled={!user || mutation.isPending}
-        className="btn-secondary gap-1.5"
-        title={user ? 'Upvote' : loginTitle}
+        className={`btn-secondary gap-1.5 ${isUp ? 'btn-primary' : ''}`}
+        title={user ? (isUp ? 'Remove upvote' : 'Upvote') : loginTitle}
       >
-        <span style={{ filter: 'grayscale(1)' }}>👍</span>
-        <span className="text-accent font-medium">{votes?.up_votes ?? 0}</span>
+        <span style={{ filter: isUp ? 'none' : 'grayscale(1)' }}>👍</span>
+        <span className={`font-medium ${isUp ? 'text-white' : 'text-accent'}`}>{votes?.up_votes ?? 0}</span>
       </button>
       <button
         onClick={() => user && mutation.mutate(0)}
         disabled={!user || mutation.isPending}
-        className="btn-secondary gap-1.5"
-        title={user ? 'Downvote' : loginTitle}
+        className={`btn-secondary gap-1.5 ${isDown ? 'btn-danger' : ''}`}
+        title={user ? (isDown ? 'Remove downvote' : 'Downvote') : loginTitle}
       >
-        <span style={{ filter: 'grayscale(1)' }}>👎</span>
-        <span className="text-[#f85149] font-medium">{votes?.down_votes ?? 0}</span>
+        <span style={{ filter: isDown ? 'none' : 'grayscale(1)' }}>👎</span>
+        <span className={`font-medium ${isDown ? 'text-white' : 'text-[#f85149]'}`}>{votes?.down_votes ?? 0}</span>
       </button>
     </div>
   )

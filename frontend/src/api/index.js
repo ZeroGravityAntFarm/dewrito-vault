@@ -291,6 +291,12 @@ export const getUpvotedMaps = () =>
 export const getUpvotedMods = () =>
   apiFetch('/api_v2/votes/me/mods', { headers: authHeaders() })
 
+export const getMyModVote = (modId) =>
+  apiFetch(`/api_v2/votes/me/mod/${modId}`, { headers: authHeaders() })
+
+export const getMyMapVote = (mapId) =>
+  apiFetch(`/api_v2/votes/me/map/${mapId}`, { headers: authHeaders() })
+
 // Auth
 export const login = async (username, password, totpCode = null) => {
   const form = new URLSearchParams()

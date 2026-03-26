@@ -1212,33 +1212,65 @@ def get_mod_vote(db: Session, mod_id: int):
 
 
 #Creates a downvote or upvote for a mod
+def get_user_mod_vote(db: Session, mod_id: int, userId: int):
+    vote_obj = db.query(models.ModVote).filter_by(modId=mod_id, userId=userId).first()
+    if not vote_obj:
+        return None
+    return vote_obj.vote
+
+
 def create_mod_vote(db: Session, mod_id: int, userId: int, vote: bool):
-    voteExists = db.query(models.ModVote).filter_by(modId=mod_id, userId=userId).first() is not None
-    if not voteExists:
+    vote_obj = db.query(models.ModVote).filter_by(modId=mod_id, userId=userId).first()
+    if not vote_obj:
         voteObject = models.ModVote(userId=userId, modId=mod_id, vote=vote)
         db.add(voteObject)
         db.commit()
         db.refresh(voteObject)
         return True, voteObject
-    return False, "You can only vote once!"
+
+    # existing vote, toggle behavior
+    if vote_obj.vote == vote:
+        db.delete(vote_obj)
+        db.commit()
+        return True, 'Vote removed'
+
+    # change vote
+    vote_obj.vote = vote
+    db.commit()
+    db.refresh(vote_obj)
+    return True, vote_obj
 
 
 #Creates a downvote or upvote
-def create_vote(db: Session, map_id: int, userId: int, vote: bool):
-    voteExists = db.query(*[c for c in models.Vote.__table__.c if c.name != 'id']).filter_by(mapId=map_id).filter_by(userId=userId).first() is not None
+def get_user_map_vote(db: Session, map_id: int, userId: int):
+    vote_obj = db.query(models.Vote).filter_by(mapId=map_id, userId=userId).first()
+    if not vote_obj:
+        return None
+    return vote_obj.vote
 
-    if not voteExists:
-        voteObject = models.Vote(userId=userId,
-                           mapId=map_id,
-                           vote=vote)
+
+def create_vote(db: Session, map_id: int, userId: int, vote: bool):
+    vote_obj = db.query(models.Vote).filter_by(mapId=map_id, userId=userId).first()
+
+    if not vote_obj:
+        voteObject = models.Vote(userId=userId, mapId=map_id, vote=vote)
         db.add(voteObject)
         db.execute("REFRESH MATERIALIZED VIEW mapdata")
         db.commit()
         db.refresh(voteObject)
-
         return True, voteObject
-    
-    return False, "You can only vote once!"
+
+    if vote_obj.vote == vote:
+        db.delete(vote_obj)
+        db.execute("REFRESH MATERIALIZED VIEW mapdata")
+        db.commit()
+        return True, 'Vote removed'
+
+    vote_obj.vote = vote
+    db.execute("REFRESH MATERIALIZED VIEW mapdata")
+    db.commit()
+    db.refresh(vote_obj)
+    return True, vote_obj
 
 
 
