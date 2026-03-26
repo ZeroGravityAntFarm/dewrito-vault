@@ -22,10 +22,9 @@ MAX_UPLOAD_BYTES = 4_831_838_208  # 4.5 GB
 models.Base.metadata.create_all(bind=engine)
 
 # Column migrations for existing databases
-with engine.connect() as _conn:
+with engine.begin() as _conn:
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS map_tags TEXT"))
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS mod_tags TEXT"))
-    _conn.commit()
 
 #Set tmp mount to location on a larger disk
 tempfile.tempdir = "/tmp"

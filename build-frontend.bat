@@ -6,4 +6,6 @@ if %errorlevel% equ 0 (
     call npm run build
 )
 
+cd ..
+
 pause
