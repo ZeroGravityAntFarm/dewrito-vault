@@ -11,6 +11,7 @@ import {
   adminGetStats,
   adminAddTag,
   adminRemoveTag,
+  adminRenameUser,
 } from '../api'
 
 function formatBytes(bytes) {
@@ -233,6 +234,10 @@ function TagSection({ label, tags, input, onInput, onAdd, onKeyDown, onRemove, i
 
 function UsersCard({ currentUserId }) {
   const qc = useQueryClient()
+  const [renamingId, setRenamingId] = useState(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [renameError, setRenameError] = useState(null)
+
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: adminGetUsers,
@@ -247,6 +252,33 @@ function UsersCard({ currentUserId }) {
     mutationFn: (userId) => adminPromoteUser(userId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   })
+
+  const renameMutation = useMutation({
+    mutationFn: ({ userId, newName }) => adminRenameUser(userId, newName),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] })
+      setRenamingId(null)
+      setRenameError(null)
+    },
+    onError: (err) => setRenameError(err.message),
+  })
+
+  function startRename(u) {
+    setRenamingId(u.id)
+    setRenameValue(u.name)
+    setRenameError(null)
+  }
+
+  function cancelRename() {
+    setRenamingId(null)
+    setRenameError(null)
+  }
+
+  function submitRename(userId) {
+    const name = renameValue.trim()
+    if (!name) return setRenameError('Username cannot be empty.')
+    renameMutation.mutate({ userId, newName: name })
+  }
 
   return (
     <div className="card p-6 space-y-4">
@@ -270,7 +302,46 @@ function UsersCard({ currentUserId }) {
               {users?.map((u) => (
                 <tr key={u.id} className="border-b border-border/50">
                   <td className="py-2 pr-4 text-text-muted">{u.id}</td>
-                  <td className="py-2 pr-4 text-text-primary font-medium">{u.name}</td>
+                  <td className="py-2 pr-4">
+                    {renamingId === u.id ? (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <input
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') submitRename(u.id)
+                              if (e.key === 'Escape') cancelRename()
+                            }}
+                            className="input text-xs py-0.5 px-2 w-32"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => submitRename(u.id)}
+                            disabled={renameMutation.isPending}
+                            className="text-xs px-2 py-0.5 rounded bg-accent/20 text-accent hover:bg-accent/30 disabled:opacity-40"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={cancelRename}
+                            className="text-xs px-2 py-0.5 rounded bg-surface-3 text-text-muted hover:text-text-primary"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        {renameError && <p className="text-red-400 text-xs">{renameError}</p>}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startRename(u)}
+                        className="text-text-primary font-medium hover:text-accent transition-colors text-left"
+                        title="Click to rename"
+                      >
+                        {u.name}
+                      </button>
+                    )}
+                  </td>
                   <td className="py-2 pr-4">
                     {u.totp_enabled ? (
                       <span className="badge badge-green text-xs">On</span>
