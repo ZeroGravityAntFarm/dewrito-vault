@@ -338,7 +338,7 @@ function UsersCard({ currentUserId }) {
                         className="text-text-primary font-medium hover:text-accent transition-colors text-left"
                         title="Click to rename"
                       >
-                        {u.name}
+                        {u.name || <span className="text-text-muted italic">(blank)</span>}
                       </button>
                     )}
                   </td>
