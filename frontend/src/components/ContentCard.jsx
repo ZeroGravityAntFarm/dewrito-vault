@@ -24,7 +24,15 @@ export function MapCard({ map }) {
         <h3 className="font-semibold text-[#e6edf3] text-sm leading-snug line-clamp-2 group-hover:text-white">
           {map.mapName}
         </h3>
-        <p className="text-[#8b949e] text-xs line-clamp-2 flex-1">{map.mapDescription}</p>
+        <p className="text-[#8b949e] text-xs flex-1">
+          Author {map.mapAuthor}
+          {map.uploader && (
+            <>
+              {' '}· Uploader <Link to={`/u/${map.uploader}`} className="text-link hover:text-link-hover">{map.uploader}</Link>
+            </>
+          )}
+        </p>
+        <p className="text-[#8b949e] text-xs line-clamp-2">{map.mapDescription}</p>
         <div className="flex items-center justify-between mt-auto pt-2">
           <div className="flex flex-wrap gap-1">
             {(map.mapTags || '').split(',').map((t) => t.trim()).filter(Boolean).slice(0, 2).map((t) => (
@@ -63,7 +71,14 @@ export function ModCard({ mod }) {
         <h3 className="font-semibold text-[#e6edf3] text-sm leading-snug line-clamp-2 group-hover:text-white">
           {mod.modName}
         </h3>
-        <p className="text-[#8b949e] text-xs flex-1">by {mod.modAuthor}</p>
+        <p className="text-[#8b949e] text-xs flex-1">
+          Author {mod.modAuthor}
+          {mod.uploader && (
+            <>
+              {' '}· Uploader <Link to={`/u/${mod.uploader}`} className="text-link hover:text-link-hover">{mod.uploader}</Link>
+            </>
+          )}
+        </p>
         <p className="text-[#8b949e] text-xs line-clamp-2">{mod.modDescription}</p>
         <div className="flex items-center justify-between mt-auto pt-2">
           <div className="flex flex-wrap gap-1">
@@ -101,7 +116,14 @@ export function PrefabCard({ prefab }) {
         <h3 className="font-semibold text-[#e6edf3] text-sm leading-snug line-clamp-2 group-hover:text-white">
           {prefab.prefabName}
         </h3>
-        <p className="text-[#8b949e] text-xs flex-1">by {prefab.prefabAuthor}</p>
+        <p className="text-[#8b949e] text-xs flex-1">
+          Author {prefab.prefabAuthor}
+          {prefab.uploader && (
+            <>
+              {' '}· Uploader <Link to={`/u/${prefab.uploader}`} className="text-link hover:text-link-hover">{prefab.uploader}</Link>
+            </>
+          )}
+        </p>
         <div className="flex items-center justify-between mt-auto pt-2">
           <span className="badge badge-gray">{prefab.prefabTags}</span>
           <div className="flex items-center gap-3 text-xs text-[#8b949e]">
@@ -129,7 +151,14 @@ export function VariantCard({ variant }) {
           </h3>
           <span className="badge badge-blue shrink-0">{variant.variantType}</span>
         </div>
-        <p className="text-[#8b949e] text-xs">by {variant.variantAuthor}</p>
+        <p className="text-[#8b949e] text-xs">
+          Author {variant.variantAuthor}
+          {variant.uploader && (
+            <>
+              {' '}· Uploader <Link to={`/u/${variant.uploader}`} className="text-link hover:text-link-hover">{variant.uploader}</Link>
+            </>
+          )}
+        </p>
         <p className="text-[#8b949e] text-xs line-clamp-3 flex-1">{variant.variantDescription}</p>
         <div className="flex items-center justify-end mt-auto pt-2">
           <span className="flex items-center gap-1 text-xs text-[#8b949e]">

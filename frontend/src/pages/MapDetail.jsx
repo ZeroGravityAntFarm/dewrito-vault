@@ -53,21 +53,10 @@ function VoteButtons({ mapId }) {
     queryKey: ['votes', mapId],
     queryFn: () => getVotes(mapId),
   })
-  const { data: myVoteData } = useQuery({
-    queryKey: ['my-map-vote', mapId],
-    queryFn: () => getMyMapVote(mapId),
-    enabled: !!user,
-  })
-
-  const isUp = myVoteData?.vote === 1
-  const isDown = myVoteData?.vote === 0
 
   const mutation = useMutation({
     mutationFn: (vote) => castVote(mapId, vote),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['votes', mapId] })
-      qc.invalidateQueries({ queryKey: ['my-map-vote', mapId] })
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['votes', mapId] }),
   })
 
   const loginTitle = 'Log in to vote'
@@ -77,17 +66,17 @@ function VoteButtons({ mapId }) {
       <button
         onClick={() => user && mutation.mutate(1)}
         disabled={!user || mutation.isPending}
-        className={`btn-secondary gap-1.5 ${isUp ? 'btn-primary' : ''}`}
-        title={user ? (isUp ? 'Remove upvote' : 'Upvote') : loginTitle}
+        className="btn-secondary gap-1.5"
+        title={user ? 'Upvote' : loginTitle}
       >
-        <span style={{ filter: isUp ? 'none' : 'grayscale(1)' }}>👍</span>
-        <span className={`font-medium ${isUp ? 'text-white' : 'text-accent'}`}>{votes?.up_votes ?? 0}</span>
+        <span style={{ filter: 'grayscale(1)' }}>👍</span>
+        <span className="text-accent font-medium">{votes?.up_votes ?? 0}</span>
       </button>
       <button
         onClick={() => user && mutation.mutate(0)}
         disabled={!user || mutation.isPending}
-        className={`btn-secondary gap-1.5 ${isDown ? 'btn-danger' : ''}`}
-        title={user ? (isDown ? 'Remove downvote' : 'Downvote') : loginTitle}
+        className="btn-secondary gap-1.5"
+        title={user ? 'Downvote' : loginTitle}
       >
         <span style={{ filter: 'grayscale(1)' }}>👎</span>
         <span className="text-[#f85149] font-medium">{votes?.down_votes ?? 0}</span>
@@ -283,9 +272,9 @@ export default function MapDetail({ legacyQuery }) {
               )}
               <h1 className="text-3xl font-bold text-white leading-tight">{map.mapName}</h1>
               <p className="text-[#8b949e] mt-1 text-sm">
-                by {map.mapAuthor}
+                Author {map.mapAuthor}
                 {uploader && (
-                  <> · uploaded by <Link to={`/u/${uploader.name}`} className="text-link hover:text-link-hover">{uploader.name}</Link></>
+                  <> · Uploader <Link to={`/u/${uploader.name}`} className="text-link hover:text-link-hover">{uploader.name}</Link></>
                 )}
               </p>
               <div className="flex items-center gap-4 mt-2 text-xs text-[#8b949e]">

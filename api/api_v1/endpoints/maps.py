@@ -70,13 +70,43 @@ def get_featured(db: Session = Depends(get_db)):
     map_cols = [c for c in models.Map.__table__.c if c.name != 'mapFile']
     mod_cols = [c for c in models.Mod.__table__.c if c.name != 'modFile']
 
-    maps = db.query(*map_cols).filter(models.Map.notVisible == False).filter(models.Map.time_created >= week_ago).order_by(desc(models.Map.map_downloads)).limit(3).all()
+    maps = (
+        db.query(*map_cols, models.User.name.label('uploader'))
+        .join(models.User, models.User.id == models.Map.owner_id, isouter=True)
+        .filter(models.Map.notVisible == False)
+        .filter(models.Map.time_created >= week_ago)
+        .order_by(desc(models.Map.map_downloads))
+        .limit(3)
+        .all()
+    )
     if len(maps) < 3:
-        maps = db.query(*map_cols).filter(models.Map.notVisible == False).order_by(desc(models.Map.map_downloads)).limit(3).all()
+        maps = (
+            db.query(*map_cols, models.User.name.label('uploader'))
+            .join(models.User, models.User.id == models.Map.owner_id, isouter=True)
+            .filter(models.Map.notVisible == False)
+            .order_by(desc(models.Map.map_downloads))
+            .limit(3)
+            .all()
+        )
 
-    mods = db.query(*mod_cols).filter(models.Mod.notVisible == False).filter(models.Mod.time_created >= week_ago).order_by(desc(models.Mod.mod_downloads)).limit(3).all()
+    mods = (
+        db.query(*mod_cols, models.User.name.label('uploader'))
+        .join(models.User, models.User.id == models.Mod.owner_id, isouter=True)
+        .filter(models.Mod.notVisible == False)
+        .filter(models.Mod.time_created >= week_ago)
+        .order_by(desc(models.Mod.mod_downloads))
+        .limit(3)
+        .all()
+    )
     if len(mods) < 3:
-        mods = db.query(*mod_cols).filter(models.Mod.notVisible == False).order_by(desc(models.Mod.mod_downloads)).limit(3).all()
+        mods = (
+            db.query(*mod_cols, models.User.name.label('uploader'))
+            .join(models.User, models.User.id == models.Mod.owner_id, isouter=True)
+            .filter(models.Mod.notVisible == False)
+            .order_by(desc(models.Mod.mod_downloads))
+            .limit(3)
+            .all()
+        )
 
     return {
         "maps": [dict(m._mapping) for m in maps],

@@ -37,6 +37,7 @@ class MapQuery(BaseModel):
     mapName: str
     mapDescription: str | None = None
     mapAuthor: str
+    uploader: str | None = None
     mapScnrObjectCount: int | None = None
     mapTotalObject: int | None = None
     map_downloads: int | None = None
@@ -56,6 +57,7 @@ class Mod(BaseModel):
     modName: str
     modDescription: str | None = None
     modAuthor: str
+    uploader: str | None = None
     mod_downloads: int | None = None
     modFileSize: int | None = None
     modFileName: str | None = None
@@ -81,6 +83,7 @@ class VariantQuery(BaseModel):
     variantName: str
     variantDescription: str | None = None
     variantAuthor: str
+    uploader: str | None = None
     time_created: str | None = None
     time_updated: str | None = None
     owner_id: int
@@ -150,6 +153,7 @@ class PreFabCreate(PrefBase):
 
 
 class PrefabQuery(PrefBase):
+    uploader: str | None = None
     downloads: int
     prefabTags: str
     gameVersion: str

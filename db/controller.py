@@ -499,9 +499,11 @@ def _map_query_with_votes(db: Session):
             *map_cols,
             func.coalesce(up.c.up_votes, 0).label('up_votes'),
             func.coalesce(down.c.down_votes, 0).label('down_votes'),
+            models.User.name.label('uploader'),
         )
         .outerjoin(up, up.c.mapId == models.Map.id)
         .outerjoin(down, down.c.mapId == models.Map.id)
+        .outerjoin(models.User, models.User.id == models.Map.owner_id)
     )
 
 
@@ -532,9 +534,11 @@ def get_popular_maps(db: Session, tag: str = None, version: str = None):
             *map_cols,
             func.coalesce(up.c.up_votes, 0).label('up_votes'),
             func.coalesce(down.c.down_votes, 0).label('down_votes'),
+            models.User.name.label('uploader'),
         )
         .outerjoin(up, up.c.mapId == models.Map.id)
         .outerjoin(down, down.c.mapId == models.Map.id)
+        .outerjoin(models.User, models.User.id == models.Map.owner_id)
         .filter(models.Map.notVisible == False)
         .order_by(desc(func.coalesce(up.c.up_votes, 0)))
     )
@@ -974,9 +978,11 @@ def _mod_query_with_votes(db: Session):
             *mod_cols,
             func.coalesce(up.c.up_votes, 0).label('up_votes'),
             func.coalesce(down.c.down_votes, 0).label('down_votes'),
+            models.User.name.label('uploader'),
         )
         .outerjoin(up, up.c.modId == models.Mod.id)
         .outerjoin(down, down.c.modId == models.Mod.id)
+        .outerjoin(models.User, models.User.id == models.Mod.owner_id)
     )
 
 
@@ -1019,9 +1025,11 @@ def get_popular_mods(db: Session, tag: str = None, version: str = None):
             *mod_cols,
             func.coalesce(up.c.up_votes, 0).label('up_votes'),
             func.coalesce(down.c.down_votes, 0).label('down_votes'),
+            models.User.name.label('uploader'),
         )
         .outerjoin(up, up.c.modId == models.Mod.id)
         .outerjoin(down, down.c.modId == models.Mod.id)
+        .outerjoin(models.User, models.User.id == models.Mod.owner_id)
         .filter(models.Mod.notVisible == False)
         .order_by(desc(func.coalesce(up.c.up_votes, 0)))
     )
@@ -1070,7 +1078,13 @@ def create_prefab(db: Session, prefab: schemas.PreFabCreate, user_id: int, prefa
 
 
 def _prefabs_base(db: Session, tag: str = None):
-    q = db.query(*[c for c in models.PreFab.__table__.c if c.name != 'prefabFile'])
+    q = (
+        db.query(
+            *[c for c in models.PreFab.__table__.c if c.name != 'prefabFile'],
+            models.User.name.label('uploader'),
+        )
+        .outerjoin(models.User, models.User.id == models.PreFab.owner_id)
+    )
     if tag:
         q = q.filter(func.lower(models.PreFab.prefabTags).contains(tag.lower()))
     return q
@@ -1152,13 +1166,23 @@ def search_variants(db: Session, search_text: str):
 
 
 #Get all variants by newest first
+def _variants_base(db: Session):
+    return (
+        db.query(
+            *[c for c in models.Variant.__table__.c if c.name != 'variantFile'],
+            models.User.name.label('uploader'),
+        )
+        .outerjoin(models.User, models.User.id == models.Variant.owner_id)
+    )
+
+
 def get_newest_variants(db: Session):
-    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(desc(models.Variant.time_created))
+    return _variants_base(db).order_by(desc(models.Variant.time_created))
 
 
 #Get all variants by oldest first
 def get_oldest_variants(db: Session):
-    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(asc(models.Variant.time_created))
+    return _variants_base(db).order_by(asc(models.Variant.time_created))
 
 
 #Get all maps a user has upvoted

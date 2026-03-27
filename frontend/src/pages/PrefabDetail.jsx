@@ -72,8 +72,8 @@ export default function PrefabDetail({ legacyQuery }) {
         <div>
           <h1 className="text-2xl font-bold text-[#e6edf3]">{prefab.prefabName}</h1>
           <p className="text-[#8b949e] mt-1">
-            by {prefab.prefabAuthor}
-            {uploader && <> · uploaded by <Link to={`/u/${uploader.name}`}>{uploader.name}</Link></>}
+            Author {prefab.prefabAuthor}
+            {uploader && <> · Uploader <Link to={`/u/${uploader.name}`}>{uploader.name}</Link></>}
           </p>
         </div>
         <span className="badge badge-gray">{prefab.prefabTags}</span>

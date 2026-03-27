@@ -57,7 +57,14 @@ export default function FeaturedBanner({ type }) {
             {title}
           </h2>
           {author && (
-            <p className="text-sm text-[#8b949e] mb-2">by {author}</p>
+            <p className="text-sm text-[#8b949e] mb-2">
+              Author {author}
+              {item.uploader && (
+                <>
+                  {' '}· Uploader <Link to={`/u/${item.uploader}`} className="text-link hover:text-link-hover">{item.uploader}</Link>
+                </>
+              )}
+            </p>
           )}
           {desc && (
             <p className="text-sm text-[#cdd9e5] line-clamp-2 leading-relaxed">

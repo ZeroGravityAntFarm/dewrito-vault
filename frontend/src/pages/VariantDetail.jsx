@@ -49,8 +49,8 @@ export default function VariantDetail({ legacyQuery }) {
           <span className="badge badge-blue">{variant.variantType}</span>
         </div>
         <p className="text-[#8b949e]">
-          by {variant.variantAuthor}
-          {uploader && <> · uploaded by <Link to={`/u/${uploader.name}`}>{uploader.name}</Link></>}
+          Author {variant.variantAuthor}
+          {uploader && <> · Uploader <Link to={`/u/${uploader.name}`}>{uploader.name}</Link></>}
         </p>
       </div>
 
