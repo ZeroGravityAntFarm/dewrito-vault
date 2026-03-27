@@ -1,9 +1,63 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response
+from db.session import SessionLocal
+from db.models import models
 
 router = APIRouter()
 
 SPA = "static/index.html"
+
+
+# --- dynamic sitemap for crawlers ---
+@router.get("/sitemap.xml", response_class=Response)
+def sitemap(request: Request):
+    base_url = f"{request.url.scheme}://{request.url.netloc}"
+
+    static_paths = [
+        "/",
+        "/maps",
+        "/maps/newest",
+        "/maps/downloaded",
+        "/maps/oldest",
+        "/variants",
+        "/mods",
+        "/mods/newest",
+        "/mods/oldest",
+        "/login",
+        "/register",
+        "/about",
+    ]
+
+    dynamic_paths = []
+    with SessionLocal() as db:
+        for m in db.query(models.Map).filter(models.Map.notVisible == False).all():
+            dynamic_paths.append(f"/maps/{m.id}")
+
+        for v in db.query(models.Variant).all():
+            dynamic_paths.append(f"/variants/{v.id}")
+
+        for m in db.query(models.Mod).filter(models.Mod.notVisible == False).all():
+            dynamic_paths.append(f"/mods/{m.id}")
+
+    urls = static_paths + dynamic_paths
+
+    xml_items = [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+        "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">",
+    ]
+
+    for path in urls:
+        full_url = f"{base_url}{path}"
+        xml_items.append("  <url>")
+        xml_items.append(f"    <loc>{full_url}</loc>")
+        xml_items.append("    <changefreq>weekly</changefreq>")
+        xml_items.append("    <priority>0.5</priority>")
+        xml_items.append("  </url>")
+
+    xml_items.append("</urlset>")
+    sitemap_xml = "\n".join(xml_items)
+
+    return Response(content=sitemap_xml, media_type="application/xml")
 
 
 # --- SPA shell for all client-side routes ---
