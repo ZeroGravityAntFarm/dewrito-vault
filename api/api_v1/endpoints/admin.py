@@ -59,6 +59,23 @@ def promote_user(user_id: int, db: Session = Depends(get_db), admin=Depends(get_
     return {"id": user.id, "is_admin": user.is_admin}
 
 
+@router.patch("/admin/users/{user_id}/password")
+def set_user_password(user_id: int, password: str = Form(None), db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    # Generate a random password if none supplied
+    if not password:
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        password = ''.join(secrets.choice(alphabet) for _ in range(12))
+
+    user = controller.set_user_password(db, user_id, password)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    # Return assigned temporary password in response so admin can convey it
+    return {"id": user.id, "temp_password": password}
+
+
 @router.patch("/admin/users/{user_id}/rename")
 def rename_user(user_id: int, new_name: str = Form(...), db: Session = Depends(get_db), admin=Depends(get_current_admin)):
     new_name = new_name.strip()

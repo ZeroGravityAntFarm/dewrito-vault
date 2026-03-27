@@ -13,6 +13,7 @@ import {
   adminRemoveTag,
   adminRenameTag,
   adminRenameUser,
+  adminSetUserPassword,
 } from '../api'
 
 function formatBytes(bytes) {
@@ -297,6 +298,15 @@ function UsersCard({ currentUserId }) {
     onError: (err) => setRenameError(err.message),
   })
 
+  const setPasswordMutation = useMutation({
+    mutationFn: ({ userId, password }) => adminSetUserPassword(userId, password),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] })
+      alert(`Temporary password assigned: ${data.temp_password}`)
+    },
+    onError: (err) => alert(`Failed to set password: ${err.message}`),
+  })
+
   function startRename(u) {
     setRenamingId(u.id)
     setRenameValue(u.name?.trim() ?? '')
@@ -329,6 +339,7 @@ function UsersCard({ currentUserId }) {
                 <th className="text-left pb-2 pr-4">2FA</th>
                 <th className="text-left pb-2 pr-4">Joined</th>
                 <th className="text-left pb-2 pr-4">Admin</th>
+                <th className="text-left pb-2 pr-4">Password</th>
                 <th className="text-left pb-2">Status</th>
               </tr>
             </thead>
@@ -398,6 +409,19 @@ function UsersCard({ currentUserId }) {
                       }`}
                     >
                       {u.is_admin ? 'Demote' : 'Promote'}
+                    </button>
+                  </td>
+                  <td className="py-2 pr-4">
+                    <button
+                      onClick={() => {
+                        const password = window.prompt('Enter password for ' + u.name + ' (leave blank to auto-generate):', '')
+                        if (password === null) return
+                        setPasswordMutation.mutate({ userId: u.id, password: password })
+                      }}
+                      disabled={setPasswordMutation.isPending || u.id === currentUserId}
+                      className="text-xs px-3 py-1 rounded font-medium bg-blue-900/40 text-blue-300 hover:bg-blue-900/60 disabled:opacity-40"
+                    >
+                      Change
                     </button>
                   </td>
                   <td className="py-2">

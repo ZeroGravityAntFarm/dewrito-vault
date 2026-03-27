@@ -234,6 +234,16 @@ def update_user_password(db: Session, userPassword: int, user: str):
     return user
 
 
+def set_user_password(db: Session, user_id: int, new_password: str):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        return None
+    hashed_password = pwd_context.hash(new_password)
+    user.hashed_password = hashed_password
+    db.commit()
+    return user
+
+
 #Update a user's rank. Fired on any map, prefab, or mod create call. 
 def update_rank(user_id: int, db: Session):
 

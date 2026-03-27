@@ -397,6 +397,13 @@ export const adminRenameUser = (userId, newName) =>
     body: new URLSearchParams({ new_name: newName }),
   })
 
+export const adminSetUserPassword = (userId, password = '') =>
+  apiFetch(`/api_v2/admin/users/${userId}/password`, {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: new URLSearchParams({ password }),
+  })
+
 export const register = (name, password) =>
   apiFetch('/api_v2/users/', {
     method: 'POST',
