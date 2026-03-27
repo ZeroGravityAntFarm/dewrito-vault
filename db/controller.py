@@ -310,12 +310,12 @@ def get_maps(db: Session, version: str, tag: str = None):
         q = q.filter(func.lower(models.Map.gameVersion).contains(version))
     if tag:
         q = q.filter(func.lower(models.Map.mapTags).contains(tag.lower()))
-    return q.all()
+    return q
 
 
 #Get all variants
 def get_variants(db: Session):
-    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).all()
+    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile'])
 
 
 #Get all variants
@@ -508,19 +508,19 @@ def _map_query_with_votes(db: Session):
 #Get all maps by newest first
 def get_newest(db: Session, tag: str = None, version: str = None):
     q = _map_query_with_votes(db).filter(models.Map.notVisible == False).order_by(desc(models.Map.time_created))
-    return _apply_map_filters(q, tag, version).all()
+    return _apply_map_filters(q, tag, version)
 
 
 #Get all maps by most downloaded first
 def get_most_downloaded(db: Session, tag: str = None, version: str = None):
     q = _map_query_with_votes(db).filter(models.Map.notVisible == False).order_by(desc(models.Map.map_downloads))
-    return _apply_map_filters(q, tag, version).all()
+    return _apply_map_filters(q, tag, version)
 
 
 #Get all maps by oldest first
 def get_oldest(db: Session, tag: str = None, version: str = None):
     q = _map_query_with_votes(db).filter(models.Map.notVisible == False).order_by(asc(models.Map.time_created))
-    return _apply_map_filters(q, tag, version).all()
+    return _apply_map_filters(q, tag, version)
 
 
 #Get all maps by most upvoted first
@@ -538,7 +538,7 @@ def get_popular_maps(db: Session, tag: str = None, version: str = None):
         .filter(models.Map.notVisible == False)
         .order_by(desc(func.coalesce(up.c.up_votes, 0)))
     )
-    return _apply_map_filters(q, tag, version).all()
+    return _apply_map_filters(q, tag, version)
 
 
 #Delete single map
@@ -813,18 +813,12 @@ def get_user_mods_public(db: Session, user: str, skip: int = 0, limit: int = 100
 
 #Case insensitive search for mod name, author, tags, or description
 def search_mods(db: Session, search_text: str):
-    mod_data = db.query(*[c for c in models.Mod.__table__.c]).filter(
+    return db.query(*[c for c in models.Mod.__table__.c]).filter(
         func.lower(models.Mod.modName).contains(search_text.lower()) |
         func.lower(models.Mod.modTags).contains(search_text.lower()) |
         func.lower(models.Mod.modAuthor).contains(search_text.lower()) |
         func.lower(models.Mod.modDescription).contains(search_text.lower())
-    ).filter(models.Mod.notVisible == False).all()
-
-    if mod_data:
-        return mod_data
-
-    else:
-        return None
+    ).filter(models.Mod.notVisible == False)
 
 
 #Create new mod entry
@@ -898,7 +892,7 @@ def get_mods(db: Session, skip: int = 0, limit: int = 100, tag: str = None):
     q = db.query(*[c for c in models.Mod.__table__.c if c.name != 'modFile']).filter(models.Mod.notVisible == False)
     if tag:
         q = q.filter(func.lower(models.Mod.modTags).contains(tag.lower()))
-    return q.offset(skip).limit(limit).all()
+    return q
 
 
 #Get single mod
@@ -993,7 +987,7 @@ def get_newest_mods(db: Session, tag: str = None, version: str = None):
         q = q.filter(func.lower(models.Mod.modTags).contains(tag.lower()))
     if version:
         q = q.filter(models.Mod.gameVersion == version)
-    return q.all()
+    return q
 
 
 #Get all mods by oldest first
@@ -1003,7 +997,7 @@ def get_oldest_mods(db: Session, tag: str = None, version: str = None):
         q = q.filter(func.lower(models.Mod.modTags).contains(tag.lower()))
     if version:
         q = q.filter(models.Mod.gameVersion == version)
-    return q.all()
+    return q
 
 
 #Get all mods by most downloaded first
@@ -1013,7 +1007,7 @@ def get_most_downloaded_mods(db: Session, tag: str = None, version: str = None):
         q = q.filter(func.lower(models.Mod.modTags).contains(tag.lower()))
     if version:
         q = q.filter(models.Mod.gameVersion == version)
-    return q.all()
+    return q
 
 
 #Get all mods by most upvoted first
@@ -1035,7 +1029,7 @@ def get_popular_mods(db: Session, tag: str = None, version: str = None):
         q = q.filter(func.lower(models.Mod.modTags).contains(tag.lower()))
     if version:
         q = q.filter(models.Mod.gameVersion == version)
-    return q.all()
+    return q
 
 
 #Create new variant entry
@@ -1084,22 +1078,22 @@ def _prefabs_base(db: Session, tag: str = None):
 
 #Get all prefabs
 def get_prefabs(db: Session, skip: int = 0, limit: int = 100, tag: str = None):
-    return _prefabs_base(db, tag).offset(skip).limit(limit).all()
+    return _prefabs_base(db, tag)
 
 
 #Get prefabs newest first
 def get_newest_prefabs(db: Session, tag: str = None):
-    return _prefabs_base(db, tag).order_by(desc(models.PreFab.time_created)).all()
+    return _prefabs_base(db, tag).order_by(desc(models.PreFab.time_created))
 
 
 #Get prefabs oldest first
 def get_oldest_prefabs(db: Session, tag: str = None):
-    return _prefabs_base(db, tag).order_by(asc(models.PreFab.time_created)).all()
+    return _prefabs_base(db, tag).order_by(asc(models.PreFab.time_created))
 
 
 #Get prefabs most downloaded first
 def get_downloaded_prefabs(db: Session, tag: str = None):
-    return _prefabs_base(db, tag).order_by(desc(models.PreFab.downloads)).all()
+    return _prefabs_base(db, tag).order_by(desc(models.PreFab.downloads))
 
 
 #Search prefabs by name, author, description, or tag
@@ -1109,7 +1103,7 @@ def search_prefabs(db: Session, search_text: str):
         func.lower(models.PreFab.prefabTags).contains(search_text.lower()) |
         func.lower(models.PreFab.prefabAuthor).contains(search_text.lower()) |
         func.lower(models.PreFab.prefabDescription).contains(search_text.lower())
-    ).all()
+    )
 
 
 #Get all prefabs for a specific user 
@@ -1140,28 +1134,31 @@ def get_prefab_file(db: Session, prefab_id: int):
 
 #Case insensitive search for map name, author, or description
 def search_maps(db: Session, search_text: str):
-    map_data = db.query(*[c for c in models.Map.__table__.c if c.name != 'mapFile']).filter(func.lower(models.Map.mapName).contains(search_text.lower()) | func.lower(models.Map.mapTags).contains(search_text.lower()) | func.lower(models.Map.mapAuthor).contains(search_text.lower()) | func.lower(models.Map.mapDescription).contains(search_text.lower())).filter(models.Map.notVisible == False).all()
+    return db.query(*[c for c in models.Map.__table__.c if c.name != 'mapFile']).filter(
+        (func.lower(models.Map.mapName).contains(search_text.lower()))
+        | (func.lower(models.Map.mapTags).contains(search_text.lower()))
+        | (func.lower(models.Map.mapAuthor).contains(search_text.lower()))
+        | (func.lower(models.Map.mapDescription).contains(search_text.lower()))
+    ).filter(models.Map.notVisible == False)
 
-    if map_data:
-        return map_data
 
-
-#Case insensitive search for map name, author, or description
+#Case insensitive search for variant name, author, or description
 def search_variants(db: Session, search_text: str):
-    variant_data = db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).filter(func.lower(models.Variant.variantName).contains(search_text.lower()) | func.lower(models.Variant.variantAuthor).contains(search_text.lower()) | func.lower(models.Variant.variantDescription).contains(search_text.lower())).all()
-
-    if variant_data:
-        return variant_data
+    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).filter(
+        (func.lower(models.Variant.variantName).contains(search_text.lower()))
+        | (func.lower(models.Variant.variantAuthor).contains(search_text.lower()))
+        | (func.lower(models.Variant.variantDescription).contains(search_text.lower()))
+    )
 
 
 #Get all variants by newest first
 def get_newest_variants(db: Session):
-    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(desc(models.Variant.time_created)).all()
+    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(desc(models.Variant.time_created))
 
 
 #Get all variants by oldest first
 def get_oldest_variants(db: Session):
-    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(asc(models.Variant.time_created)).all()
+    return db.query(*[c for c in models.Variant.__table__.c if c.name != 'variantFile']).order_by(asc(models.Variant.time_created))
 
 
 #Get all maps a user has upvoted

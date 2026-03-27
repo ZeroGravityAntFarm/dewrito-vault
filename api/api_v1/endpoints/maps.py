@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, Form, File, UploadFile
-from fastapi_pagination import paginate, Page, Params
+from fastapi_pagination import Page, Params
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 from db.schemas import schemas
 from db import controller
 from db.models import models
@@ -87,14 +88,8 @@ def get_featured(db: Session = Depends(get_db)):
 @router.get("/maps/")
 @limiter.limit("60/minute")
 def read_maps(request: Request, version: str = "all", tag: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    maps = controller.get_maps(db, version, tag=tag)
-
-    if maps:
-        map_dict = [dict(row._mapping) for row in maps]
-        return paginate(map_dict, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Maps not found")
+    maps_q = controller.get_maps(db, version, tag=tag)
+    return sqlalchemy_paginate(maps_q, params)
 
 
 #Get all variants
@@ -153,52 +148,32 @@ def read_variant(variant_id: int, db: Session = Depends(get_db)):
 @router.get("/maps/newest", response_model=Page[schemas.MapQuery])
 @limiter.limit("60/minute")
 def read_maps_new(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    maps = controller.get_newest(db, tag=tag, version=version)
-
-    if maps:
-        return paginate(maps, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Maps not found")
+    maps_q = controller.get_newest(db, tag=tag, version=version)
+    return sqlalchemy_paginate(maps_q, params)
 
 
 #Get all Maps Most Downloads first
 @router.get("/maps/downloaded", response_model=Page[schemas.MapQuery])
 @limiter.limit("60/minute")
 def read_maps_downloaded(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    maps = controller.get_most_downloaded(db, tag=tag, version=version)
-
-    if maps:
-        return paginate(maps, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Maps not found")
+    maps_q = controller.get_most_downloaded(db, tag=tag, version=version)
+    return sqlalchemy_paginate(maps_q, params)
 
 
 #Get all Maps Oldest first
 @router.get("/maps/oldest", response_model=Page[schemas.MapQuery])
 @limiter.limit("60/minute")
 def read_maps_oldest(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    maps = controller.get_oldest(db, tag=tag, version=version)
-
-    if maps:
-        return paginate(maps, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Maps not found")
+    maps_q = controller.get_oldest(db, tag=tag, version=version)
+    return sqlalchemy_paginate(maps_q, params)
 
 
 #Get all Maps by most upvoted first
 @router.get("/maps/popular", response_model=Page[schemas.MapQuery])
 @limiter.limit("60/minute")
 def read_maps_popular(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    maps = controller.get_popular_maps(db, tag=tag, version=version)
-
-    if maps:
-        return paginate(maps, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Maps not found")
+    maps_q = controller.get_popular_maps(db, tag=tag, version=version)
+    return sqlalchemy_paginate(maps_q, params)
 
 
 #Get single map
@@ -281,26 +256,16 @@ def read_map(request: Request, var_id: int, db: Session = Depends(get_db)):
 
 #Search Maps
 @router.get("/maps/search/{search_text}")
-def search_maps(search_text: str = 0,  params: Params = Depends(), db: Session = Depends(get_db)):
-    maps = controller.search_maps(db, search_text=search_text)
-    
-    if maps:
-        return paginate([dict(mapx._mapping) for mapx in maps], params)
-    
-    else:
-        return {"No results"}
+def search_maps(search_text: str = 0, params: Params = Depends(), db: Session = Depends(get_db)):
+    maps_q = controller.search_maps(db, search_text=search_text)
+    return sqlalchemy_paginate(maps_q, params)
 
 
 #Search Variants
 @router.get("/variants/search/{search_text}")
-def search_variants(search_text: str = 0,  params: Params = Depends(), db: Session = Depends(get_db)):
-    variants = controller.search_variants(db, search_text=search_text)
-    
-    if variants:
-        return paginate([dict(vari._mapping) for vari in variants], params)
-    
-    else:
-        return {"No results"}
+def search_variants(search_text: str = 0, params: Params = Depends(), db: Session = Depends(get_db)):
+    variants_q = controller.search_variants(db, search_text=search_text)
+    return sqlalchemy_paginate(variants_q, params)
 
 
 #Patch Single Map

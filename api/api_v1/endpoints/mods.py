@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, Form, File, UploadFile
-from fastapi_pagination import paginate, Page, Params
+from fastapi_pagination import Page, Params
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 from db.schemas import schemas
 from db import controller
 from db.models import models
@@ -53,77 +54,47 @@ async def return_mod(request: Request, modId: int, db: Session = Depends(get_db)
 @router.get("/mods/")
 @limiter.limit("60/minute")
 def read_mods(request: Request, tag: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    mods = controller.get_mods(db, tag=tag)
-
-    if mods:
-        return paginate(mods, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Mods not found")
+    mods_q = controller.get_mods(db, tag=tag)
+    return sqlalchemy_paginate(mods_q, params)
 
 
 #Get all Mods Newest first
 @router.get("/mods/newest", response_model=Page[schemas.Mod])
 @limiter.limit("60/minute")
 def read_mods_new(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    mods = controller.get_newest_mods(db, tag=tag, version=version)
-
-    if mods:
-        return paginate(mods, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Mods not found")
+    mods_q = controller.get_newest_mods(db, tag=tag, version=version)
+    return sqlalchemy_paginate(mods_q, params)
 
 
 #Get all Mods Most Downloads first
 @router.get("/mods/downloaded", response_model=Page[schemas.Mod])
 @limiter.limit("60/minute")
 def read_mods_downloaded(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    mods = controller.get_most_downloaded_mods(db, tag=tag, version=version)
-
-    if mods:
-        return paginate(mods, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Mods not found")
+    mods_q = controller.get_most_downloaded_mods(db, tag=tag, version=version)
+    return sqlalchemy_paginate(mods_q, params)
 
 
 #Get all Mods Oldest first
 @router.get("/mods/oldest", response_model=Page[schemas.Mod])
 @limiter.limit("60/minute")
 def read_mods_oldest(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    mods = controller.get_oldest_mods(db, tag=tag, version=version)
-
-    if mods:
-        return paginate(mods, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Mods not found")
+    mods_q = controller.get_oldest_mods(db, tag=tag, version=version)
+    return sqlalchemy_paginate(mods_q, params)
 
 
 #Get all Mods by most upvoted first
 @router.get("/mods/popular", response_model=Page[schemas.Mod])
 @limiter.limit("60/minute")
 def read_mods_popular(request: Request, tag: str = None, version: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    mods = controller.get_popular_mods(db, tag=tag, version=version)
-
-    if mods:
-        return paginate(mods, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Mods not found")
+    mods_q = controller.get_popular_mods(db, tag=tag, version=version)
+    return sqlalchemy_paginate(mods_q, params)
 
 
 #Search Mods
 @router.get("/mods/search/{search_text}")
 def search_mods(search_text: str = 0, params: Params = Depends(), db: Session = Depends(get_db)):
-    mods = controller.search_mods(db, search_text=search_text)
-
-    if mods:
-        return paginate([dict(modx._mapping) for modx in mods], params)
-
-    else:
-        return paginate([], params)
+    mods_q = controller.search_mods(db, search_text=search_text)
+    return sqlalchemy_paginate(mods_q, params)
 
 
 #Get single mod

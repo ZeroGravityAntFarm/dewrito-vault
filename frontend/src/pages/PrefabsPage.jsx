@@ -13,11 +13,13 @@ const PAGE_SIZE = 21
 
 export default function PrefabsPage({ sort = 'newest' }) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [page, setPage] = useState(1)
   const query = searchParams.get('q') || ''
   const tag = searchParams.get('tag') || ''
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
 
-  useEffect(() => { setPage(1) }, [sort, query, tag])
+  useEffect(() => {
+    // Keep URL page query as provided for initial deep-linking.
+  }, [sort, query, tag])
 
   function fetchFn() {
     if (query) return searchPrefabs(query, page, PAGE_SIZE)
@@ -40,8 +42,16 @@ export default function PrefabsPage({ sort = 'newest' }) {
     if (!value) p.delete(key)
     else p.set(key, value)
     if (key !== 'q') p.delete('q')
+    p.delete('page')
     setSearchParams(p)
-    setPage(1)
+  }
+
+  function goToPage(newPage) {
+    const p = new URLSearchParams(searchParams)
+    if (newPage <= 1) p.delete('page')
+    else p.set('page', String(newPage))
+    setSearchParams(p)
+    window.scrollTo(0, 0)
   }
 
   function handleSearch(e) {
@@ -112,7 +122,7 @@ export default function PrefabsPage({ sort = 'newest' }) {
       ) : (
         <>
           <CardGrid>{prefabs.map((p) => <PrefabCard key={p.id} prefab={p} />)}</CardGrid>
-          <Pagination page={page} total={total} size={PAGE_SIZE} onChange={(p) => { setPage(p); window.scrollTo(0, 0) }} />
+          <Pagination page={page} total={total} size={PAGE_SIZE} onChange={goToPage} />
         </>
       )}
     </div>

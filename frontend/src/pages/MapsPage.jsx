@@ -26,12 +26,14 @@ const PAGE_SIZE = 21
 
 export default function MapsPage({ sort = 'newest' }) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [page, setPage] = useState(1)
   const query = searchParams.get('q') || ''
   const version = searchParams.get('version') || ''
   const tag = searchParams.get('tag') || ''
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
 
-  useEffect(() => { setPage(1) }, [sort, query, version, tag])
+  useEffect(() => {
+    // No automatic page reset here. URL may provide page deep-link value.
+  }, [sort, query, version, tag])
 
   function fetchFn() {
     if (query) return searchMaps(query, page, PAGE_SIZE)
@@ -58,8 +60,16 @@ export default function MapsPage({ sort = 'newest' }) {
     if (!value) p.delete(key)
     else p.set(key, value)
     if (key !== 'q') p.delete('q')
+    p.delete('page')
     setSearchParams(p)
-    setPage(1)
+  }
+
+  function goToPage(newPage) {
+    const p = new URLSearchParams(searchParams)
+    if (newPage <= 1) p.delete('page')
+    else p.set('page', String(newPage))
+    setSearchParams(p)
+    window.scrollTo(0, 0)
   }
 
   const hasFilters = !!(tag || version)
@@ -134,7 +144,7 @@ export default function MapsPage({ sort = 'newest' }) {
           <CardGrid>
             {maps.map((m) => <MapCard key={m.id} map={m} />)}
           </CardGrid>
-          <Pagination page={page} total={total} size={PAGE_SIZE} onChange={(p) => { setPage(p); window.scrollTo(0, 0) }} />
+          <Pagination page={page} total={total} size={PAGE_SIZE} onChange={goToPage} />
         </>
       )}
     </div>

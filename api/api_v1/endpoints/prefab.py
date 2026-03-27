@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
-from fastapi_pagination import paginate, Params
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate as sqlalchemy_paginate
 from db.schemas import schemas
 from db import controller
 from db.session import SessionLocal
@@ -36,64 +37,39 @@ async def return_prefabview(request: Request, prefabId: int, db: Session = Depen
 @router.get("/prefabs")
 @limiter.limit("60/minute")
 def read_prefabs(request: Request, tag: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    prefabs = controller.get_prefabs(db, tag=tag)
-
-    if prefabs:
-        return paginate(prefabs, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Prefabs not found")
+    prefabs_q = controller.get_prefabs(db, tag=tag)
+    return sqlalchemy_paginate(prefabs_q, params)
 
 
 #Get prefabs newest first — must be before /{prefab_id}
 @router.get("/prefabs/newest")
 @limiter.limit("60/minute")
 def read_prefabs_newest(request: Request, tag: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    prefabs = controller.get_newest_prefabs(db, tag=tag)
-
-    if prefabs:
-        return paginate(prefabs, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Prefabs not found")
+    prefabs_q = controller.get_newest_prefabs(db, tag=tag)
+    return sqlalchemy_paginate(prefabs_q, params)
 
 
 #Get prefabs oldest first — must be before /{prefab_id}
 @router.get("/prefabs/oldest")
 @limiter.limit("60/minute")
 def read_prefabs_oldest(request: Request, tag: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    prefabs = controller.get_oldest_prefabs(db, tag=tag)
-
-    if prefabs:
-        return paginate(prefabs, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Prefabs not found")
+    prefabs_q = controller.get_oldest_prefabs(db, tag=tag)
+    return sqlalchemy_paginate(prefabs_q, params)
 
 
 #Get prefabs most downloaded first — must be before /{prefab_id}
 @router.get("/prefabs/downloaded")
 @limiter.limit("60/minute")
 def read_prefabs_downloaded(request: Request, tag: str = None, params: Params = Depends(), db: Session = Depends(get_db)):
-    prefabs = controller.get_downloaded_prefabs(db, tag=tag)
-
-    if prefabs:
-        return paginate(prefabs, params)
-
-    else:
-        raise HTTPException(status_code=400, detail="Prefabs not found")
+    prefabs_q = controller.get_downloaded_prefabs(db, tag=tag)
+    return sqlalchemy_paginate(prefabs_q, params)
 
 
 #Search prefabs — must be before /{prefab_id}
 @router.get("/prefabs/search/{search_text}")
 def search_prefabs(search_text: str, params: Params = Depends(), db: Session = Depends(get_db)):
-    prefabs = controller.search_prefabs(db, search_text=search_text)
-
-    if prefabs:
-        return paginate(prefabs, params)
-
-    else:
-        return {"No results"}
+    prefabs_q = controller.search_prefabs(db, search_text=search_text)
+    return sqlalchemy_paginate(prefabs_q, params)
 
 
 #Get prefab by id
