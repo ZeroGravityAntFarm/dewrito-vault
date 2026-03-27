@@ -94,7 +94,10 @@ def read_mods_popular(request: Request, tag: str = None, version: str = None, pa
 @router.get("/mods/search/{search_text}")
 def search_mods(search_text: str = 0, params: Params = Depends(), db: Session = Depends(get_db)):
     mods_q = controller.search_mods(db, search_text=search_text)
-    return sqlalchemy_paginate(mods_q, params)
+    result = sqlalchemy_paginate(mods_q, params)
+    # Convert SQLAlchemy Row objects to dicts for serialization
+    result.items = [dict(row._mapping) for row in result.items]
+    return result
 
 
 #Get single mod

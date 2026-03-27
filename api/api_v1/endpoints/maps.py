@@ -288,7 +288,10 @@ def read_map(request: Request, var_id: int, db: Session = Depends(get_db)):
 @router.get("/maps/search/{search_text}")
 def search_maps(search_text: str = 0, params: Params = Depends(), db: Session = Depends(get_db)):
     maps_q = controller.search_maps(db, search_text=search_text)
-    return sqlalchemy_paginate(maps_q, params)
+    result = sqlalchemy_paginate(maps_q, params)
+    # Convert SQLAlchemy Row objects to dicts for serialization
+    result.items = [dict(row._mapping) for row in result.items]
+    return result
 
 
 #Search Variants

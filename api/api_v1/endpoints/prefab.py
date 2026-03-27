@@ -69,7 +69,10 @@ def read_prefabs_downloaded(request: Request, tag: str = None, params: Params = 
 @router.get("/prefabs/search/{search_text}")
 def search_prefabs(search_text: str, params: Params = Depends(), db: Session = Depends(get_db)):
     prefabs_q = controller.search_prefabs(db, search_text=search_text)
-    return sqlalchemy_paginate(prefabs_q, params)
+    result = sqlalchemy_paginate(prefabs_q, params)
+    # Convert SQLAlchemy Row objects to dicts for serialization
+    result.items = [dict(row._mapping) for row in result.items]
+    return result
 
 
 #Get prefab by id
