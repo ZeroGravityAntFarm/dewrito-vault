@@ -75,7 +75,9 @@ def _check_owner(db: Session, t: str, item_id: int, user):
     oid = _owner_id(db, t, item_id)
     if oid is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    if oid != user.id:
+
+    is_admin = getattr(user, 'is_admin', False)
+    if not is_admin and oid != user.id:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
 

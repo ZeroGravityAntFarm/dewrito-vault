@@ -40,7 +40,8 @@ export default function ImageManager({ type, itemId, ownerId, onUpdate }) {
     onError: (err) => setError(err.message),
   })
 
-  if (!user || user.id !== ownerId) return null
+  const isAdmin = user?.is_admin || false
+  if (!user || (user.id !== ownerId && !isAdmin)) return null
 
   const isPending = deleteMutation.isPending || reorderMutation.isPending || uploading
 
