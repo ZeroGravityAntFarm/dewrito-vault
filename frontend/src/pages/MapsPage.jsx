@@ -32,8 +32,9 @@ export default function MapsPage({ sort = 'newest' }) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
 
   useEffect(() => {
-    // No automatic page reset here. URL may provide page deep-link value.
-  }, [sort, query, version, tag])
+    document.title = 'Maps - Dewrito Share'
+    return () => { document.title = 'Dewrito Share'; };
+  }, [])
 
   function fetchFn() {
     if (query) return searchMaps(query, page, PAGE_SIZE)

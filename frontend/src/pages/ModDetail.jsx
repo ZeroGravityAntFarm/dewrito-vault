@@ -10,6 +10,7 @@ import SimilarItems from '../components/SimilarItems'
 import TagPicker, { MOD_TAGS } from '../components/TagPicker'
 import { VersionPicker } from '../components/TagPicker'
 import FileInput from '../components/FileInput'
+import React, { useEffect } from 'react'
 
 const DEFAULT_IMG = '/content/default/forge.jpg'
 
@@ -218,6 +219,15 @@ export default function ModDetail({ legacyQuery }) {
       setDeleteLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (mod?.modName) {
+      document.title = `${mod.modName} - Dewrito Share`;
+    }
+    return () => {
+      document.title = 'Dewrito Share';
+    };
+  }, [mod?.modName]);
 
   if (isLoading) {
     return (

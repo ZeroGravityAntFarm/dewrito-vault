@@ -9,6 +9,7 @@ import ImageManager from '../components/ImageManager'
 import SimilarItems from '../components/SimilarItems'
 import TagPicker, { MAP_TAGS } from '../components/TagPicker'
 import FileInput from '../components/FileInput'
+import React, { useEffect } from 'react'
 
 const DEFAULT_IMG = '/content/default/forge.jpg'
 
@@ -228,6 +229,15 @@ export default function MapDetail({ legacyQuery }) {
       setDeleteLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (map?.mapName) {
+      document.title = `${map.mapName} - Dewrito Share`;
+    }
+    return () => {
+      document.title = 'Dewrito Share';
+    };
+  }, [map?.mapName]);
 
   if (isLoading) {
     return (

@@ -22,8 +22,9 @@ export default function ModsPage({ sort = 'newest' }) {
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
 
   useEffect(() => {
-    // No automatic page reset here. Use setParam() to reset page on filter changes.
-  }, [sort, query, tag, version])
+    document.title = 'Mods - Dewrito Share';
+    return () => { document.title = 'Dewrito Share'; };
+  }, []);
 
   function fetchFn() {
     if (query) return searchMods(query, page, PAGE_SIZE)
