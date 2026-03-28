@@ -29,10 +29,20 @@ with engine.begin() as _conn:
 #Set tmp mount to location on a larger disk
 tempfile.tempdir = "/tmp"
 
+
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(api_router)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Serve robots.txt from project root
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    robots_path = os.path.join(os.path.dirname(__file__), "robots.txt")
+    return FileResponse(robots_path, media_type="text/plain")
 
 
 @app.middleware("http")
