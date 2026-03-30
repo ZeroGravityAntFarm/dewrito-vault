@@ -1,3 +1,6 @@
+// Public game versions
+export const getGameVersions = () =>
+  apiFetch('/api_v2/game-versions')
 function getCookie(name) {
   const decoded = decodeURIComponent(document.cookie)
   const parts = decoded.split(';')

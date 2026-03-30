@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/auth'
 import { ErrorMessage } from '../components/ContentCard'
 import ImageManager from '../components/ImageManager'
 import SimilarItems from '../components/SimilarItems'
-import TagPicker, { MAP_TAGS } from '../components/TagPicker'
+import TagPicker, { MAP_TAGS, VersionPicker } from '../components/TagPicker'
 import FileInput from '../components/FileInput'
 import React, { useEffect } from 'react'
 
@@ -174,6 +174,7 @@ export default function MapDetail({ legacyQuery }) {
       mapName: map.mapName,
       mapUserDesc: map.mapUserDesc || '',
       mapTags: map.mapTags ? map.mapTags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+      gameVersion: map.gameVersion || '',
       visible: !map.notVisible,
     })
     setEditing(true)
@@ -184,6 +185,7 @@ export default function MapDetail({ legacyQuery }) {
       mapName: editForm.mapName,
       mapUserDesc: editForm.mapUserDesc,
       mapTags: editForm.mapTags.join(','),
+      gameVersion: editForm.gameVersion,
       mapVisibility: editForm.visible,
     })
   }
@@ -452,6 +454,13 @@ export default function MapDetail({ legacyQuery }) {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs text-[#8b949e]">Tags</label>
                   <TagPicker tags={availableMapTags} selected={editForm.mapTags} onChange={(t) => setEditForm((f) => ({ ...f, mapTags: t }))} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-[#8b949e]">Game Version</label>
+                  <VersionPicker
+                    value={editForm.gameVersion}
+                    onChange={(v) => setEditForm((f) => ({ ...f, gameVersion: v }))}
+                  />
                 </div>
                 <label className="flex items-center gap-2 text-sm text-[#cdd9e5] cursor-pointer">
                   <input

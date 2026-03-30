@@ -162,7 +162,7 @@ export default function ModDetail({ legacyQuery }) {
   function startEditing() {
     setEditForm({
       modName: mod.modName,
-      modDescription: mod.modUserDescription || mod.modDescription || '',
+      modUserDesc: mod.modUserDescription || mod.modDescription || '',
       modTags: mod.modTags ? mod.modTags.split(',').map((t) => t.trim()).filter(Boolean) : [],
       gameVersion: mod.gameVersion || '',
       visible: !mod.notVisible,
@@ -173,10 +173,10 @@ export default function ModDetail({ legacyQuery }) {
   function saveEdit() {
     editMutation.mutate({
       modName: editForm.modName,
-      modDescription: editForm.modDescription,
+      modUserDesc: editForm.modUserDesc,
       modTags: editForm.modTags.join(','),
       modVisibility: editForm.visible,
-      modGameVersion: editForm.gameVersion,
+      gameVersion: editForm.gameVersion,
     })
   }
 
@@ -425,8 +425,8 @@ export default function ModDetail({ legacyQuery }) {
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-[#8b949e]">Description</label>
                   <textarea
-                    value={editForm.modDescription}
-                    onChange={(e) => setEditForm((f) => ({ ...f, modDescription: e.target.value }))}
+                    value={editForm.modUserDesc}
+                    onChange={(e) => setEditForm((f) => ({ ...f, modUserDesc: e.target.value }))}
                     rows={4}
                     className="input resize-none text-sm"
                     maxLength={1200}
@@ -481,8 +481,9 @@ export default function ModDetail({ legacyQuery }) {
             {/* Metadata */}
             <div className="card divide-y divide-border">
               <h2 className="text-sm font-semibold text-[#8b949e] uppercase tracking-wider px-5 py-3">Details</h2>
-              {[
+              {[ 
                 ['Author', mod.modAuthor],
+                ['ElDewrito Version', mod.gameVersion],
                 ['Version', mod.modVersion],
                 ['File Size', mod.modFileSize ? `${(mod.modFileSize / 1024 / 1024).toFixed(2)} MB` : null],
                 ['Downloads', mod.mod_downloads],

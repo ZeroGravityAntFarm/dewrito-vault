@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { getGameVersions } from '../api'
 
 export const MAP_TAGS = ['Slayer', 'Infection', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Race', 'Mini Games', 'Enhanced', '0.7', '0.5.1']
 export const MOD_TAGS = ['vehicle', 'animation', 'object', 'armor', 'ui', 'hud', 'biped', 'weapon', 'campaign', 'mode', 'ability', 'map', 'ai', 'cosmetic', 'misc']
@@ -6,35 +8,30 @@ export const MOD_VERSIONS = ['0.7.0', '0.7.1', '0.7.2', '0.6.1', '0.5.1']
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-export function VersionPicker({ value, onChange }) {
-  const init = value ? value.split('.') : ['', '', '']
-  const [parts, setParts] = useState(init)
 
-  function update(idx, digit) {
-    const next = [...parts]
-    next[idx] = digit
-    setParts(next)
-    onChange(next.every((p) => p !== '') ? next.join('.') : '')
-  }
+export function VersionPicker({ value, onChange }) {
+  // Fetch game versions from public endpoint
+  const { data, isLoading } = useQuery({
+    queryKey: ['game-versions'],
+    queryFn: getGameVersions,
+    staleTime: 60_000,
+  })
+  const versions = data?.game_versions ?? []
 
   return (
-    <div className="flex items-center gap-1.5">
-      {[0, 1, 2].map((idx) => (
-        <>
-          {idx > 0 && <span key={`dot-${idx}`} className="text-[#484f58] font-mono select-none">.</span>}
-          <select
-            key={idx}
-            value={parts[idx]}
-            onChange={(e) => update(idx, e.target.value)}
-            className="select"
-            style={{ width: '4.5rem' }}
-          >
-            <option value="">—</option>
-            {DIGITS.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </>
+    <select
+      className="select"
+      value={value || ''}
+      onChange={e => onChange(e.target.value)}
+      required
+      style={{ width: '10rem' }}
+      disabled={isLoading || versions.length === 0}
+    >
+      <option value="">Select version…</option>
+      {versions.map(v => (
+        <option key={v} value={v}>{v}</option>
       ))}
-    </div>
+    </select>
   )
 }
 

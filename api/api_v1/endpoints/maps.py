@@ -303,15 +303,29 @@ def search_variants(search_text: str = 0, params: Params = Depends(), db: Sessio
 
 #Patch Single Map
 @router.patch("/maps/{map_id}")
-def patch_map(map_id: int, mapUserDesc: str = Form(" "), mapVisibility: bool = Form(...), mapTags: str = Form(...), db: Session = Depends(get_db), mapName: str = Form(...), user: str = Depends(get_current_user)):
-
+def patch_map(
+    map_id: int,
+    mapUserDesc: str = Form(" "),
+    mapVisibility: bool = Form(...),
+    mapTags: str = Form(...),
+    db: Session = Depends(get_db),
+    mapName: str = Form(...),
+    gameVersion: str = Form(None),
+    user: str = Depends(get_current_user),
+):
     mapVisibility = not mapVisibility
-
-    map = controller.update_map(db, map_id=map_id, mapUserDesc=mapUserDesc, mapTags=mapTags, mapName=mapName, user=user, mapVisibility=mapVisibility)
-
+    map = controller.update_map(
+        db,
+        map_id=map_id,
+        mapUserDesc=mapUserDesc,
+        mapTags=mapTags,
+        mapName=mapName,
+        user=user,
+        mapVisibility=mapVisibility,
+        gameVersion=gameVersion,
+    )
     if map:
         return HTTPException(status_code=200, detail="Map updated successfully")
-
     else:
         raise HTTPException(status_code=400, detail="Failed to update map")
 

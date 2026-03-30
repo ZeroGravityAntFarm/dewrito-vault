@@ -339,16 +339,15 @@ def get_map(db: Session, map_id: int):
 
 
 #Update map
-def update_map(db: Session, map_id: int, user: str, mapUserDesc: str, mapTags: str, mapName: str, mapVisibility: bool):
+def update_map(db: Session, map_id: int, user: str, mapUserDesc: str, mapTags: str, mapName: str, mapVisibility: bool, gameVersion: str = None):
     map = db.query(models.Map).filter(models.Map.id == map_id and models.Map.owner_id == user.id).first()
-
-    map.mapName = mapName 
+    map.mapName = mapName
     map.mapTags = mapTags
     map.mapUserDesc = mapUserDesc
     map.notVisible = mapVisibility
-    
+    if gameVersion is not None:
+        map.gameVersion = gameVersion
     db.commit()
-
     return map
 
 
