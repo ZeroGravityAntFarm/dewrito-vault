@@ -586,9 +586,9 @@ def delete_map(db: Session, map_id: int, user: str):
 
 # --- Admin / SiteSettings helpers ---
 
-_DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Race', 'Mini Games', 'Enhanced', '0.7', '0.5.1']
+_DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Race', 'Mini Games', 'Enhanced', '0.7', '0.5.1.1']
 _DEFAULT_MOD_TAGS = ['vehicle', 'animation', 'object', 'armor', 'ui', 'hud', 'biped', 'weapon', 'campaign', 'mode', 'ability', 'map', 'ai', 'cosmetic', 'misc']
-_DEFAULT_GAME_VERSIONS = ['0.7.2', '0.7.1', '0.7.0', '0.6.1', '0.5.1']
+_DEFAULT_GAME_VERSIONS = ['0.7.2', '0.7.1', '0.7.0', '0.6.1', '0.5.1.1']
 
 def get_or_create_settings(db: Session):
     settings = db.query(models.SiteSettings).filter(models.SiteSettings.id == 1).first()

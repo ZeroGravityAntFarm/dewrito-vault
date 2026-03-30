@@ -47,7 +47,7 @@ class mapReader(object):
 
                 #This one byte seems to be in 0.5 maps but not in 0.6 so we ball
                 if sig in (")"):
-                    self.gameVersion = "0.5.1"
+                    self.gameVersion = "0.5.1.1"
                 
                 else:
                     self.gameVersion = "0.6.1"
