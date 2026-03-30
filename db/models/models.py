@@ -173,6 +173,7 @@ class SiteSettings(Base):
     registration_enabled = Column(Boolean, default=True)
     map_tags = Column(Text, nullable=True)
     mod_tags = Column(Text, nullable=True)
+    webhook_domain = Column(String(256), nullable=True)
 
 
 class Tracking(Base):

@@ -37,21 +37,19 @@ def removeHtml(text):
 
 
 #Send webhook notifications in background
-def send_map_webhooks(webhooks, mapId: int):
+def send_map_webhooks(webhooks, mapId: int, domain: str = "https://fileshare.zgaf.io"):
     if webhooks:
         for webhook in webhooks:
-            #logger.info(webhook.webhookname)
-            wh = DiscordWebhook(url=webhook.webhookurl, content="https://fileshare.zgaf.io/maps/" + str(mapId))
+            wh = DiscordWebhook(url=webhook.webhookurl, content=domain + "/maps/" + str(mapId))
             wh.execute()
             time.sleep(0.5)
 
 
 #Send webhook notifications in background
-def send_mod_webhooks(webhooks, modId: int):
+def send_mod_webhooks(webhooks, modId: int, domain: str = "https://fileshare.zgaf.io"):
     if webhooks:
         for webhook in webhooks:
-            #logger.info(webhook.webhookname)
-            wh = DiscordWebhook(url=webhook.webhookurl, content="https://fileshare.zgaf.io/mods/" + str(modId))
+            wh = DiscordWebhook(url=webhook.webhookurl, content=domain + "/mods/" + str(modId))
             wh.execute()
             time.sleep(0.5)
 
@@ -147,7 +145,8 @@ def upload(background_tasks: BackgroundTasks, mapUserDesc: str = Form(" "), mapT
              
 
     #Run webhook queue in background
-    background_tasks.add_task(send_map_webhooks, webhooks, map_create.id)
+    webhook_domain = controller.get_or_create_settings(db).webhook_domain or "https://fileshare.zgaf.io"
+    background_tasks.add_task(send_map_webhooks, webhooks, map_create.id, webhook_domain)
     return HTTPException(status_code=200, detail="Success!")
 
 
@@ -335,7 +334,8 @@ def upload(background_tasks: BackgroundTasks, modDescription: str = Form(" "), m
             image.close()
 
     #Run webhook queue in background
-    background_tasks.add_task(send_mod_webhooks, webhooks, mod_create.id)
+    webhook_domain = controller.get_or_create_settings(db).webhook_domain or "https://fileshare.zgaf.io"
+    background_tasks.add_task(send_mod_webhooks, webhooks, mod_create.id, webhook_domain)
     return HTTPException(status_code=200, detail="Success!")
 
 
@@ -411,7 +411,8 @@ def upload_mod_chunk(
     with open("/app/static/mods/pak/" + str(mod_create.id) + "/" + filename, "wb") as f:
         shutil.copyfileobj(BytesIO(modContents), f, 128 * 1024)
 
-    background_tasks.add_task(send_mod_webhooks, webhooks, mod_create.id)
+    webhook_domain = controller.get_or_create_settings(db).webhook_domain or "https://fileshare.zgaf.io"
+    background_tasks.add_task(send_mod_webhooks, webhooks, mod_create.id, webhook_domain)
     return {"status": "complete", "mod_id": mod_create.id}
 
 

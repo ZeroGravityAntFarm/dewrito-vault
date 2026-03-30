@@ -356,11 +356,11 @@ export const adminPromoteUser = (userId) =>
 export const adminGetSettings = () =>
   apiFetch('/api_v2/admin/settings', { headers: authHeaders() })
 
-export const adminUpdateSettings = (registrationEnabled) =>
+export const adminUpdateSettings = (registrationEnabled, webhookDomain = '') =>
   apiFetch('/api_v2/admin/settings', {
     method: 'PATCH',
     headers: authHeaders(),
-    body: new URLSearchParams({ registration_enabled: registrationEnabled }),
+    body: new URLSearchParams({ registration_enabled: registrationEnabled, webhook_domain: webhookDomain }),
   })
 
 export const adminGetStats = () =>

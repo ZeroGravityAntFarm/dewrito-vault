@@ -78,14 +78,27 @@ function StatBox({ label, value }) {
 
 function SettingsCard() {
   const qc = useQueryClient()
+  const [webhookDomain, setWebhookDomain] = useState('')
+  const [domainSaved, setDomainSaved] = useState(false)
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin-settings'],
     queryFn: adminGetSettings,
+    onSuccess: (d) => setWebhookDomain(d.webhook_domain ?? ''),
   })
 
+  // Sync local state when data loads
+  useEffect(() => {
+    if (data) setWebhookDomain(data.webhook_domain ?? '')
+  }, [data])
+
   const mutation = useMutation({
-    mutationFn: (enabled) => adminUpdateSettings(enabled),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-settings'] }),
+    mutationFn: ({ enabled, domain }) => adminUpdateSettings(enabled, domain),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      setDomainSaved(true)
+      setTimeout(() => setDomainSaved(false), 2000)
+    },
   })
 
   return (
@@ -94,24 +107,46 @@ function SettingsCard() {
       {isLoading ? (
         <p className="text-text-muted text-sm">Loading...</p>
       ) : data ? (
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-text-primary text-sm font-medium">User Registration</p>
-            <p className="text-text-muted text-xs">Allow new users to create accounts</p>
-          </div>
-          <button
-            onClick={() => mutation.mutate(!data.registration_enabled)}
-            disabled={mutation.isPending}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              data.registration_enabled ? 'bg-accent' : 'bg-surface-3'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                data.registration_enabled ? 'translate-x-6' : 'translate-x-1'
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-text-primary text-sm font-medium">User Registration</p>
+              <p className="text-text-muted text-xs">Allow new users to create accounts</p>
+            </div>
+            <button
+              onClick={() => mutation.mutate({ enabled: !data.registration_enabled, domain: webhookDomain })}
+              disabled={mutation.isPending}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                data.registration_enabled ? 'bg-accent' : 'bg-surface-3'
               }`}
-            />
-          </button>
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  data.registration_enabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          <div className="space-y-1">
+            <p className="text-text-primary text-sm font-medium">Webhook Link Domain</p>
+            <p className="text-text-muted text-xs">Domain used in content links sent to webhooks (e.g. https://example.com). Leave empty to use the default.</p>
+            <div className="flex gap-2 mt-1">
+              <input
+                type="text"
+                value={webhookDomain}
+                onChange={(e) => setWebhookDomain(e.target.value)}
+                placeholder="https://fileshare.zgaf.io"
+                className="flex-1 bg-surface-2 text-text-primary text-sm rounded px-3 py-1.5 border border-surface-3 focus:outline-none focus:border-accent"
+              />
+              <button
+                onClick={() => mutation.mutate({ enabled: data.registration_enabled, domain: webhookDomain })}
+                disabled={mutation.isPending}
+                className="px-3 py-1.5 bg-accent text-white text-sm rounded hover:bg-accent/80 disabled:opacity-50"
+              >
+                {domainSaved ? 'Saved' : 'Save'}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

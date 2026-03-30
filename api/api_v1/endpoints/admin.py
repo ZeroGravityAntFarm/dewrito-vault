@@ -107,19 +107,25 @@ def get_settings(db: Session = Depends(get_db), admin=Depends(get_current_admin)
         "registration_enabled": settings.registration_enabled,
         "map_tags": json.loads(settings.map_tags or "[]"),
         "mod_tags": json.loads(settings.mod_tags or "[]"),
+        "webhook_domain": settings.webhook_domain or "",
     }
 
 
 @router.patch("/admin/settings")
 def update_settings(
     registration_enabled: bool = Form(...),
+    webhook_domain: str = Form(default=""),
     db: Session = Depends(get_db),
     admin=Depends(get_current_admin),
 ):
     settings = controller.get_or_create_settings(db)
     settings.registration_enabled = registration_enabled
+    settings.webhook_domain = webhook_domain.strip().rstrip("/") or None
     db.commit()
-    return {"registration_enabled": settings.registration_enabled}
+    return {
+        "registration_enabled": settings.registration_enabled,
+        "webhook_domain": settings.webhook_domain or "",
+    }
 
 
 @router.post("/admin/settings/tags/{tag_type}")
