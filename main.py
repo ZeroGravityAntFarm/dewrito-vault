@@ -26,6 +26,7 @@ with engine.begin() as _conn:
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS map_tags TEXT"))
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS mod_tags TEXT"))
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS webhook_domain VARCHAR(256)"))
+    _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS game_versions TEXT"))
 
 #Set tmp mount to location on a larger disk
 tempfile.tempdir = "/tmp"

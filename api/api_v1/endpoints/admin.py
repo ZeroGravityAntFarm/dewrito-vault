@@ -97,6 +97,7 @@ def get_tags_public(db: Session = Depends(get_db)):
     return {
         "map_tags": json.loads(settings.map_tags or "[]"),
         "mod_tags": json.loads(settings.mod_tags or "[]"),
+        "game_versions": json.loads(settings.game_versions or "[]"),
     }
 
 
@@ -108,6 +109,7 @@ def get_settings(db: Session = Depends(get_db), admin=Depends(get_current_admin)
         "map_tags": json.loads(settings.map_tags or "[]"),
         "mod_tags": json.loads(settings.mod_tags or "[]"),
         "webhook_domain": settings.webhook_domain or "",
+        "game_versions": json.loads(settings.game_versions or "[]"),
     }
 
 
@@ -211,6 +213,65 @@ def rename_tag(
     controller.rename_tags_in_items(db, tag_type, old_tag, new_tag)
 
     return {"map_tags": json.loads(settings.map_tags or "[]"), "mod_tags": json.loads(settings.mod_tags or "[]")}
+
+
+@router.post("/admin/settings/game-versions")
+def add_game_version(
+    version: str = Form(...),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    version = version.strip()
+    if not version:
+        raise HTTPException(status_code=400, detail="Version cannot be empty")
+    settings = controller.get_or_create_settings(db)
+    versions = json.loads(settings.game_versions or "[]")
+    if version not in versions:
+        versions.append(version)
+        settings.game_versions = json.dumps(versions)
+        db.commit()
+    return {"game_versions": json.loads(settings.game_versions)}
+
+
+@router.delete("/admin/settings/game-versions")
+def remove_game_version(
+    version: str = Form(...),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    version_clean = version.strip()
+    settings = controller.get_or_create_settings(db)
+    versions = [v for v in json.loads(settings.game_versions or "[]") if v.strip() != version_clean]
+    settings.game_versions = json.dumps(versions)
+    db.commit()
+    controller.remove_game_version_from_items(db, version_clean)
+    return {"game_versions": json.loads(settings.game_versions)}
+
+
+@router.patch("/admin/settings/game-versions/rename")
+def rename_game_version(
+    old_version: str = Form(...),
+    new_version: str = Form(...),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    old_version = old_version.strip()
+    new_version = new_version.strip()
+    if not old_version or not new_version:
+        raise HTTPException(status_code=400, detail="Versions cannot be empty")
+    if old_version == new_version:
+        raise HTTPException(status_code=400, detail="New version must be different")
+    settings = controller.get_or_create_settings(db)
+    versions = json.loads(settings.game_versions or "[]")
+    if old_version not in versions:
+        raise HTTPException(status_code=404, detail="Version not found")
+    if new_version in versions:
+        raise HTTPException(status_code=400, detail="Version already exists")
+    versions = [new_version if v == old_version else v for v in versions]
+    settings.game_versions = json.dumps(versions)
+    db.commit()
+    controller.rename_game_version_in_items(db, old_version, new_version)
+    return {"game_versions": json.loads(settings.game_versions)}
 
 
 @router.get("/admin/stats")

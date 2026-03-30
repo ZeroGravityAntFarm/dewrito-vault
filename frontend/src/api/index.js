@@ -390,6 +390,27 @@ export const adminRenameTag = (tagType, oldTag, newTag) =>
     body: new URLSearchParams({ old_tag: oldTag, new_tag: newTag }),
   })
 
+export const adminAddGameVersion = (version) =>
+  apiFetch('/api_v2/admin/settings/game-versions', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: new URLSearchParams({ version }),
+  })
+
+export const adminRemoveGameVersion = (version) =>
+  apiFetch('/api_v2/admin/settings/game-versions', {
+    method: 'DELETE',
+    headers: authHeaders(),
+    body: new URLSearchParams({ version }),
+  })
+
+export const adminRenameGameVersion = (oldVersion, newVersion) =>
+  apiFetch('/api_v2/admin/settings/game-versions/rename', {
+    method: 'PATCH',
+    headers: authHeaders(),
+    body: new URLSearchParams({ old_version: oldVersion, new_version: newVersion }),
+  })
+
 export const adminRenameUser = (userId, newName) =>
   apiFetch(`/api_v2/admin/users/${userId}/rename`, {
     method: 'PATCH',

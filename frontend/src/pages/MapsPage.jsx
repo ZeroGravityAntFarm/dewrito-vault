@@ -6,12 +6,6 @@ import { MapCard, CardGrid, SkeletonCard, ErrorMessage, EmptyState } from '../co
 import Pagination from '../components/Pagination'
 import FeaturedBanner from '../components/FeaturedBanner'
 
-const VERSION_OPTIONS = [
-  { label: 'All Versions', value: '' },
-  { label: '0.7.X', value: '0.7' },
-  { label: '0.6.1', value: '0.6.1' },
-  { label: '0.5.1', value: '0.5.1' },
-]
 
 const DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Race', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Mini Games']
 
@@ -55,6 +49,7 @@ export default function MapsPage({ sort = 'newest' }) {
 
   const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
   const availableMapTags = tagsData?.map_tags ?? DEFAULT_MAP_TAGS
+  const availableVersions = tagsData?.game_versions ?? []
 
   function setParam(key, value) {
     const p = new URLSearchParams(searchParams)
@@ -99,8 +94,9 @@ export default function MapsPage({ sort = 'newest' }) {
               onChange={(e) => setParam('version', e.target.value)}
               className="select"
             >
-              {VERSION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option value="">All Versions</option>
+              {availableVersions.map((v) => (
+                <option key={v} value={v}>{v}</option>
               ))}
             </select>
 

@@ -589,6 +589,7 @@ def delete_map(db: Session, map_id: int, user: str):
 
 _DEFAULT_MAP_TAGS = ['Slayer', 'Infection', 'Puzzle', 'KOTH', 'CTF', 'Assault', 'Territories', 'Oddball', 'Juggernaut', 'VIP', 'Race', 'Mini Games', 'Enhanced', '0.7', '0.5.1']
 _DEFAULT_MOD_TAGS = ['vehicle', 'animation', 'object', 'armor', 'ui', 'hud', 'biped', 'weapon', 'campaign', 'mode', 'ability', 'map', 'ai', 'cosmetic', 'misc']
+_DEFAULT_GAME_VERSIONS = ['0.7.2', '0.7.1', '0.7.0', '0.6.1', '0.5.1']
 
 def get_or_create_settings(db: Session):
     settings = db.query(models.SiteSettings).filter(models.SiteSettings.id == 1).first()
@@ -598,6 +599,7 @@ def get_or_create_settings(db: Session):
             registration_enabled=True,
             map_tags=json.dumps(_DEFAULT_MAP_TAGS),
             mod_tags=json.dumps(_DEFAULT_MOD_TAGS),
+            game_versions=json.dumps(_DEFAULT_GAME_VERSIONS),
         )
         db.add(settings)
         db.commit()
@@ -609,9 +611,31 @@ def get_or_create_settings(db: Session):
         if settings.mod_tags is None:
             settings.mod_tags = json.dumps(_DEFAULT_MOD_TAGS)
             changed = True
+        if settings.game_versions is None:
+            settings.game_versions = json.dumps(_DEFAULT_GAME_VERSIONS)
+            changed = True
         if changed:
             db.commit()
     return settings
+
+
+def rename_game_version_in_items(db: Session, old_version: str, new_version: str):
+    old_lower = old_version.lower().strip()
+    new_clean = new_version.strip()
+    for model in (models.Map, models.Mod):
+        items = db.query(model).filter(func.lower(model.gameVersion) == old_lower).all()
+        for item in items:
+            item.gameVersion = new_clean
+    db.commit()
+
+
+def remove_game_version_from_items(db: Session, old_version: str):
+    old_lower = old_version.lower().strip()
+    for model in (models.Map, models.Mod):
+        items = db.query(model).filter(func.lower(model.gameVersion) == old_lower).all()
+        for item in items:
+            item.gameVersion = None
+    db.commit()
 
 
 def get_all_users_admin(db: Session):

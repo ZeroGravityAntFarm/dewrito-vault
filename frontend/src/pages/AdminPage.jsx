@@ -14,6 +14,9 @@ import {
   adminRenameTag,
   adminRenameUser,
   adminSetUserPassword,
+  adminAddGameVersion,
+  adminRemoveGameVersion,
+  adminRenameGameVersion,
 } from '../api'
 
 function formatBytes(bytes) {
@@ -40,6 +43,7 @@ export default function AdminPage() {
       <StatsCard />
       <SettingsCard />
       <TagsCard />
+      <GameVersionsCard />
       <UsersCard currentUserId={user.id} />
     </div>
   )
@@ -298,6 +302,121 @@ function TagSection({ label, tagType, tags, input, onInput, onAdd, onKeyDown, on
           Add
         </button>
       </div>
+    </div>
+  )
+}
+
+function GameVersionsCard() {
+  const qc = useQueryClient()
+  const [input, setInput] = useState('')
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-settings'],
+    queryFn: adminGetSettings,
+  })
+
+  const addMutation = useMutation({
+    mutationFn: (version) => adminAddGameVersion(version),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-settings'] }),
+    onError: (err) => alert(`Failed to add version: ${err.message}`),
+  })
+
+  const removeMutation = useMutation({
+    mutationFn: (version) => adminRemoveGameVersion(version),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      qc.invalidateQueries({ queryKey: ['mods'] })
+      qc.invalidateQueries({ queryKey: ['maps'] })
+    },
+  })
+
+  const renameMutation = useMutation({
+    mutationFn: ({ oldVersion, newVersion }) => adminRenameGameVersion(oldVersion, newVersion),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] })
+      qc.invalidateQueries({ queryKey: ['mods'] })
+      qc.invalidateQueries({ queryKey: ['maps'] })
+    },
+    onError: (err) => alert(`Failed to rename version: ${err.message}`),
+  })
+
+  function handleAdd() {
+    const v = input.trim()
+    if (!v) return
+    addMutation.mutate(v)
+    setInput('')
+  }
+
+  const isPending = addMutation.isPending || removeMutation.isPending || renameMutation.isPending
+  const versions = data?.game_versions ?? []
+
+  return (
+    <div className="card p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-text-primary">Game Versions</h2>
+      <p className="text-text-muted text-xs">
+        Manage available game versions. Renaming a version updates all maps and mods that use it.
+        Removing a version clears it from all maps and mods.
+      </p>
+      {isLoading ? (
+        <p className="text-text-muted text-sm">Loading...</p>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-1.5 min-h-[2rem]">
+            {versions.length === 0 && <span className="text-text-muted text-xs italic">No versions yet</span>}
+            {versions.map((v) => (
+              <span
+                key={v}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-surface-2 border border-border text-text-primary font-mono"
+              >
+                <span
+                  className="cursor-pointer hover:text-accent"
+                  title="Rename version"
+                  onClick={() => {
+                    const newV = prompt('Rename version', v)
+                    if (newV && newV.trim() && newV.trim() !== v) {
+                      renameMutation.mutate({ oldVersion: v, newVersion: newV.trim() })
+                    }
+                  }}
+                >
+                  {v}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(`Remove version '${v}'? This will clear the game version from all maps and mods that use it.`)) {
+                      removeMutation.mutate(v)
+                    }
+                  }}
+                  disabled={isPending}
+                  className="text-text-muted hover:text-red-400 transition-colors disabled:opacity-40 leading-none"
+                  aria-label={`Remove ${v}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd() } }}
+              placeholder="e.g. 0.7.3"
+              className="input flex-1 text-sm font-mono"
+              disabled={isPending}
+            />
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={isPending || !input.trim()}
+              className="btn-primary text-sm px-4 disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

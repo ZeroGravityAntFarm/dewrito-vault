@@ -174,6 +174,7 @@ class SiteSettings(Base):
     map_tags = Column(Text, nullable=True)
     mod_tags = Column(Text, nullable=True)
     webhook_domain = Column(String(256), nullable=True)
+    game_versions = Column(Text, nullable=True)
 
 
 class Tracking(Base):

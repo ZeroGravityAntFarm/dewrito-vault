@@ -8,7 +8,6 @@ import FeaturedBanner from '../components/FeaturedBanner'
 
 const DEFAULT_MOD_TAGS = ['Skins', 'Audio', 'HUD', 'Vehicles', 'Weapons', 'Gameplay', 'Maps', 'UI', 'Cosmetic']
 
-const MOD_VERSIONS = ['0.7.0', '0.7.1', '0.7.2', '0.6.1', '0.5.1']
 
 const SORT_LABELS = { newest: 'Newest', downloaded: 'Most Downloaded', popular: 'Popular', oldest: 'Oldest' }
 
@@ -45,6 +44,7 @@ export default function ModsPage({ sort = 'newest' }) {
 
   const { data: tagsData } = useQuery({ queryKey: ['tags'], queryFn: getTags, staleTime: 60_000 })
   const availableModTags = tagsData?.mod_tags ?? DEFAULT_MOD_TAGS
+  const availableVersions = tagsData?.game_versions ?? []
 
   function setParam(key, value) {
     const p = new URLSearchParams(searchParams)
@@ -89,7 +89,7 @@ export default function ModsPage({ sort = 'newest' }) {
               className="select"
             >
               <option value="">All Versions</option>
-              {MOD_VERSIONS.map((v) => (
+              {availableVersions.map((v) => (
                 <option key={v} value={v}>{v}</option>
               ))}
             </select>
