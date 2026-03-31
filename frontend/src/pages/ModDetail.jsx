@@ -23,6 +23,18 @@ function formatTagList(tags) {
     .join(', ')
 }
 
+function formatFileSize(bytes) {
+  if (bytes == null || Number.isNaN(Number(bytes))) return '—'
+  const size = Number(bytes)
+  if (size < 1024) return `${size.toFixed(0)} B`
+  const kb = size / 1024
+  if (kb < 1024) return `${kb.toFixed(1)} KB`
+  const mb = kb / 1024
+  if (mb < 1024) return `${mb.toFixed(1)} MB`
+  const gb = mb / 1024
+  return `${gb.toFixed(2)} GB`
+}
+
 function ChangelogTab({ entries }) {
   if (!entries) return <div className="skeleton h-24 rounded-lg" />
   if (!entries.length) return (
@@ -293,7 +305,7 @@ export default function ModDetail({ legacyQuery }) {
                   <span>v{mod.modVersion}</span>
                 )}
                 {mod.modFileSize && (
-                  <span>{(mod.modFileSize / 1024 / 1024).toFixed(2)} MB</span>
+                  <span>{formatFileSize(mod.modFileSize)}</span>
                 )}
               </div>
             </div>
@@ -485,7 +497,7 @@ export default function ModDetail({ legacyQuery }) {
                 ['Author', mod.modAuthor],
                 ['Version', mod.modVersion],
                 ['ElDewrito Version', mod.gameVersion],
-                ['File Size', mod.modFileSize ? `${(mod.modFileSize / 1024 / 1024).toFixed(2)} MB` : null],
+                ['File Size', mod.modFileSize ? formatFileSize(mod.modFileSize) : null],
                 ['Downloads', mod.mod_downloads],
                 ['Tag', formatTagList(mod.modTags)],
                 ['Uploaded', mod.time_created ? `${timeSince(mod.time_created)} ago` : '—'],
