@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { uploadMap, uploadPrefab, uploadModWithProgress, getTags } from '../api'
+import { uploadMap, uploadPrefab, uploadModWithProgress, uploadModChunked, addImages, getTags } from '../api'
 import TagPicker, { MAP_TAGS, MOD_TAGS } from './TagPicker'
 import { VersionPicker } from './TagPicker'
 import FileInput from './FileInput'
@@ -146,7 +146,27 @@ function ModUpload({ onClose }) {
     for (const f of imagesRef.current?.files ?? []) fd.append('files', f)
 
     try {
-      await uploadModWithProgress(fd, setProgress)
+      let response
+      const modFile = modRef.current.files[0]
+      const chunkThreshold = 10 * 1024 * 1024
+
+      if (modFile.size > chunkThreshold) {
+        response = await uploadModChunked(modFile, {
+          modDescription: desc,
+          modTags: tags.join(','),
+          modGameVersion: gameVersion,
+          modVisibility: visible,
+        }, setProgress)
+
+        if (imagesRef.current?.files?.length > 0 && response?.mod_id) {
+          const imagesFormData = new FormData()
+          for (const f of imagesRef.current.files) imagesFormData.append('files', f)
+          await addImages('mods', response.mod_id, imagesFormData)
+        }
+      } else {
+        await uploadModWithProgress(fd, setProgress)
+      }
+
       setStatus({ success: true })
       setTimeout(() => { onClose(); navigate('/mods/newest') }, 1500)
     } catch (err) {

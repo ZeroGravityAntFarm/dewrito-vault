@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getMod, getUser, getModVotes, castModVote, timeSince, updateMod, getModChangelog, updateModFile, deleteMod, getTags } from '../api'
+import { getMod, getUser, getModVotes, castModVote, timeSince, updateMod, getModChangelog, updateModFile, updateModFileChunked, deleteMod, getTags } from '../api'
 import { useAuthStore } from '../store/auth'
 import { ErrorMessage } from '../components/ContentCard'
 import ImageManager from '../components/ImageManager'
@@ -204,11 +204,17 @@ export default function ModDetail({ legacyQuery }) {
     setUpdateLoading(true)
     setUpdateStatus(null)
     setUpdateProgress(0)
+    const file = modFileRef.current.files[0]
     const fd = new FormData()
-    fd.append('files', modFileRef.current.files[0])
+    fd.append('files', file)
     fd.append('changelog', updateChangelog)
     try {
-      await updateModFile(modId, fd, setUpdateProgress)
+      if (file.size > 10 * 1024 * 1024) {
+        await updateModFileChunked(modId, file, updateChangelog, setUpdateProgress)
+      } else {
+        await updateModFile(modId, fd, setUpdateProgress)
+      }
+
       setUpdateStatus({ success: true })
       qc.invalidateQueries({ queryKey: ['mod', modId] })
       qc.invalidateQueries({ queryKey: ['mod-changelog', modId] })

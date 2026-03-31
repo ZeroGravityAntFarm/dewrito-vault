@@ -456,6 +456,54 @@ export const getMapChangelog = (id) =>
 export const getModChangelog = (id) =>
   apiFetch(`/api_v2/mods/${id}/changelog`)
 
+const UPLOAD_CHUNK_SIZE = 10 * 1024 * 1024 // 10 MB chunks
+
+function makeUploadId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID()
+  return `${Date.now().toString(16)}-${Math.random().toString(16).slice(2, 10)}`
+}
+
+async function chunkedPost(url, buildForm, file, onProgress) {
+  const totalSize = file.size
+  const totalChunks = Math.ceil(totalSize / UPLOAD_CHUNK_SIZE)
+  const uploadId = makeUploadId()
+  let uploadedBytes = 0
+
+  for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+    const start = chunkIndex * UPLOAD_CHUNK_SIZE
+    const end = Math.min(start + UPLOAD_CHUNK_SIZE, totalSize)
+    const chunkBlob = file.slice(start, end)
+
+    const formData = buildForm({
+      upload_id: uploadId,
+      chunk_index: chunkIndex,
+      total_chunks: totalChunks,
+      filename: file.name,
+      chunk: chunkBlob,
+    })
+
+    const token = getCookie('Authorization')
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(text || `HTTP ${res.status}`)
+    }
+
+    const data = await res.json()
+    uploadedBytes += chunkBlob.size
+    if (onProgress) onProgress(Math.round((uploadedBytes / totalSize) * 100))
+
+    if (data.status === 'complete') return data
+  }
+
+  throw new Error('Upload did not complete')
+}
+
 export const updateMapFile = (id, formData, onProgress) =>
   new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
@@ -491,10 +539,28 @@ export const updateModFile = (id, formData, onProgress) =>
   })
 
 export const updateModFileChunked = (id, file, changelog, onProgress) => {
-  const fd = new FormData()
-  fd.append('files', file)
-  fd.append('changelog', changelog)
-  return updateModFile(id, fd, onProgress)
+  if (file.size <= UPLOAD_CHUNK_SIZE) {
+    const fd = new FormData()
+    fd.append('files', file)
+    fd.append('changelog', changelog)
+    return updateModFile(id, fd, onProgress)
+  }
+
+  return chunkedPost(
+    `/api_v2/update/mod/${id}/chunk`,
+    (fields) => {
+      const fd = new FormData()
+      fd.append('upload_id', fields.upload_id)
+      fd.append('chunk_index', fields.chunk_index)
+      fd.append('total_chunks', fields.total_chunks)
+      fd.append('filename', fields.filename)
+      fd.append('chunk', fields.chunk)
+      fd.append('changelog', changelog)
+      return fd
+    },
+    file,
+    onProgress
+  )
 }
 
 export const uploadModWithProgress = (formData, onProgress) => {
@@ -517,7 +583,38 @@ export const uploadModWithProgress = (formData, onProgress) => {
   })
 }
 
-export const uploadModChunked = uploadModWithProgress
+export const uploadModChunked = (file, metadata, onProgress) => {
+  if (file.size <= UPLOAD_CHUNK_SIZE) {
+    const fd = new FormData()
+    fd.append('files', file)
+    fd.append('modDescription', metadata.modDescription || ' ')
+    fd.append('modTags', metadata.modTags || '')
+    fd.append('modVisibility', metadata.modVisibility === false ? 'false' : 'true')
+    fd.append('modGameVersion', metadata.modGameVersion || '')
+    return uploadModWithProgress(fd, onProgress)
+  }
+
+  return chunkedPost(
+    '/api_v2/upload/mod/chunk',
+    (fields) => {
+      const fd = new FormData()
+      fd.append('upload_id', fields.upload_id)
+      fd.append('chunk_index', fields.chunk_index)
+      fd.append('total_chunks', fields.total_chunks)
+      fd.append('filename', fields.filename)
+      fd.append('chunk', fields.chunk)
+
+      fd.append('modDescription', metadata.modDescription || ' ')
+      fd.append('modTags', metadata.modTags || '')
+      fd.append('modVisibility', metadata.modVisibility === false ? 'false' : 'true')
+      fd.append('modGameVersion', metadata.modGameVersion || '')
+
+      return fd
+    },
+    file,
+    onProgress
+  )
+}
 
 // Cookie helpers (exported for auth store)
 export function setCookie(name, value, days) {
