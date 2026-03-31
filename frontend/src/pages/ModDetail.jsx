@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
+import remarkBreaks from 'remark-breaks'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMod, getUser, getModVotes, castModVote, timeSince, updateMod, getModChangelog, updateModFile, updateModFileChunked, deleteMod, getTags } from '../api'
 import { useAuthStore } from '../store/auth'
@@ -491,7 +492,7 @@ export default function ModDetail({ legacyQuery }) {
               <div className="card p-5">
                 <h2 className="text-sm font-semibold text-[#8b949e] uppercase tracking-wider mb-3">Description</h2>
                 <div className="prose-description">
-                  <ReactMarkdown>{description}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkBreaks]}>{description}</ReactMarkdown>
                 </div>
               </div>
             )}
