@@ -860,6 +860,7 @@ def search_mods(db: Session, search_text: str):
 
 #Create new mod entry
 def create_user_mod(db: Session, modUserDescription: str, modTags: str, mod: schemas.ModCreate, user_id: int, modVisibility: bool, gameVersion: str = "0.7.1"):
+    modTags = (modTags or "").strip()
     db_mod = models.Mod(modName=mod.modName,
                         modAuthor=mod.modAuthor,
                         modTags=modTags,

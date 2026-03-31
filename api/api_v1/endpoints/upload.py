@@ -378,7 +378,7 @@ def upload_mod_chunk(
     filename: str = Form(...),
     chunk: UploadFile = File(...),
     modDescription: str = Form(default=" "),
-    modTags: str = Form(default="misc"),
+    modTags: str = Form(default=""),
     modVisibility: bool = Form(default=True),
     modGameVersion: str = Form(default=""),
     db: Session = Depends(get_db),

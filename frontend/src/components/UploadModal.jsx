@@ -118,7 +118,7 @@ function MapUpload({ onClose }) {
 
 function ModUpload({ onClose }) {
   const { modTags } = useTags()
-  const [tags, setTags] = useState(['misc'])
+  const [tags, setTags] = useState([])
   const [gameVersion, setGameVersion] = useState('')
   const [desc, setDesc] = useState('')
   const [visible, setVisible] = useState(true)
