@@ -481,10 +481,10 @@ export default function ModDetail({ legacyQuery }) {
             {/* Metadata */}
             <div className="card divide-y divide-border">
               <h2 className="text-sm font-semibold text-[#8b949e] uppercase tracking-wider px-5 py-3">Details</h2>
-              {[ 
+              {[
                 ['Author', mod.modAuthor],
-                ['ElDewrito Version', mod.gameVersion],
                 ['Version', mod.modVersion],
+                ['ElDewrito Version', mod.gameVersion],
                 ['File Size', mod.modFileSize ? `${(mod.modFileSize / 1024 / 1024).toFixed(2)} MB` : null],
                 ['Downloads', mod.mod_downloads],
                 ['Tag', formatTagList(mod.modTags)],
