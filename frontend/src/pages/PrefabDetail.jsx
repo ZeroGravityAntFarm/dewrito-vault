@@ -5,7 +5,7 @@ import { getPrefab, getUser, timeSince } from '../api'
 import { ErrorMessage } from '../components/ContentCard'
 import ImageManager from '../components/ImageManager'
 
-const DEFAULT_IMG = '/content/default/forge.jpg'
+const DEFAULT_IMG = '/content/default/forge.png'
 
 function ImageCarousel({ prefabId, count = 5, cacheKey = 0 }) {
   const [current, setCurrent] = useState(0)

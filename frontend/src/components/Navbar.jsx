@@ -100,7 +100,7 @@ export default function Navbar({ onMenuToggle, onUpload }) {
                 src={`/content/avatars/${user.id}.jpg`}
                 alt={`${user.name} avatar`}
                 className="w-6 h-6 rounded-full object-cover border border-border"
-                onError={(e) => { e.currentTarget.src = '/content/default/forge.jpg' }}
+                onError={(e) => { e.currentTarget.src = '/content/default/forge.png' }}
               />
               <span className="truncate max-w-[6rem]">{user.name}</span>
             </Link>

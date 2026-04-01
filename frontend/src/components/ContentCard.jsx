@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { timeSince } from '../api'
 
-const DEFAULT_IMG = '/content/default/forge.jpg'
+const DEFAULT_IMG = '/content/default/forge.png'
 
 function Thumbnail({ src, alt }) {
   return (

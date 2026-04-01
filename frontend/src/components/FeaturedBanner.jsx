@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getFeatured, timeSince } from '../api'
 
-const DEFAULT_IMG = '/content/default/forge.jpg'
+const DEFAULT_IMG = '/content/default/forge.png'
 
 export default function FeaturedBanner({ type }) {
   const { data, isLoading } = useQuery({

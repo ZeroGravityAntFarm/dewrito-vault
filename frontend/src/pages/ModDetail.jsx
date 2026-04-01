@@ -13,7 +13,7 @@ import { VersionPicker } from '../components/TagPicker'
 import FileInput from '../components/FileInput'
 import React, { useEffect } from 'react'
 
-const DEFAULT_IMG = '/content/default/forge.jpg'
+const DEFAULT_IMG = '/content/default/forge.png'
 
 function formatTagList(tags) {
   if (!tags) return ''

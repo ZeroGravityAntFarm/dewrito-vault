@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getMapsNewest, getModsNewest, timeSince } from '../api'
 
-const DEFAULT_IMG = '/content/default/forge.jpg'
+const DEFAULT_IMG = '/content/default/forge.png'
 
 function SimilarCard({ to, thumb, title, meta, age, upvotes, downloads }) {
   return (

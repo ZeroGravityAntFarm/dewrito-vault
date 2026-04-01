@@ -5,7 +5,7 @@ import { getUserMaps, getUserMods, updateUser, uploadAvatar, getWebhooks, create
 import { useAuthStore } from '../store/auth'
 import { MapCard, ModCard, CardGrid, SkeletonCard } from '../components/ContentCard'
 
-const DEFAULT_AVATAR = '/content/default/forge.jpg'
+const DEFAULT_AVATAR = '/content/default/forge.png'
 
 function Tab({ active, onClick, children }) {
   return (

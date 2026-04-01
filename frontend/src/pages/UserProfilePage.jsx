@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getUserByName, getUserStats, getUserPublicMaps, getUserPublicMods } from '../api'
 import { MapCard, ModCard, CardGrid, SkeletonCard, ErrorMessage } from '../components/ContentCard'
 
-const DEFAULT_AVATAR = '/content/default/forge.jpg'
+const DEFAULT_AVATAR = '/content/default/forge.png'
 
 function Tab({ active, onClick, children }) {
   return (
