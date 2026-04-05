@@ -1,11 +1,51 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import FileResponse, HTMLResponse, Response
+from fastapi.templating import Jinja2Templates
 from db.session import SessionLocal
 from db.models import models
+from db import controller
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 SPA = "static/index.html"
+templates = Jinja2Templates(directory="templates")
+
+BOT_AGENTS = (
+    "facebookexternalhit",
+    "twitterbot",
+    "discordbot",
+    "slackbot",
+    "linkedinbot",
+    "whatsapp",
+    "telegrambot",
+    "googlebot",
+    "bingbot",
+    "applebot",
+    "embedly",
+    "outbrain",
+    "pinterest",
+    "quora link preview",
+    "rogerbot",
+    "showyoubot",
+    "skypeuripreview",
+    "vkshare",
+    "w3c_validator",
+    "xing-contenttabreceiver",
+)
+
+
+def _is_bot(request: Request) -> bool:
+    ua = request.headers.get("user-agent", "").lower()
+    return any(bot in ua for bot in BOT_AGENTS)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 # --- dynamic sitemap for crawlers ---
@@ -83,7 +123,20 @@ def maps_oldest(request: Request):
     return FileResponse(SPA)
 
 @router.get("/maps/{map_id}", response_class=HTMLResponse)
-def map_detail(request: Request, map_id: str):
+def map_detail(request: Request, map_id: str, db: Session = Depends(get_db)):
+    if _is_bot(request):
+        try:
+            map_id_int = int(map_id)
+            item = controller.get_map(db, map_id=map_id_int)
+            if item:
+                return templates.TemplateResponse("map/index.html", {
+                    "request": request,
+                    "mapName": item.mapName,
+                    "id": item.id,
+                    "mapDescription": item.mapDescription,
+                })
+        except (ValueError, Exception):
+            pass
     return FileResponse(SPA)
 
 @router.get("/variants", response_class=HTMLResponse)
@@ -91,7 +144,22 @@ def variants_root(request: Request):
     return FileResponse(SPA)
 
 @router.get("/variants/{variant_id}", response_class=HTMLResponse)
-def variant_detail(request: Request, variant_id: str):
+def variant_detail(request: Request, variant_id: str, db: Session = Depends(get_db)):
+    if _is_bot(request):
+        try:
+            variant_id_int = int(variant_id)
+            item = controller.get_variant_id(db, variant_id=variant_id_int)
+            if item:
+                variant_image = item.variantFileName.split('.')[1] if '.' in item.variantFileName else ""
+                return templates.TemplateResponse("variant/index.html", {
+                    "request": request,
+                    "variantName": item.variantName,
+                    "id": item.id,
+                    "variantDescription": item.variantDescription,
+                    "variantImage": variant_image,
+                })
+        except (ValueError, Exception):
+            pass
     return FileResponse(SPA)
 
 @router.get("/prefabs", response_class=HTMLResponse)
@@ -111,7 +179,20 @@ def prefabs_oldest(request: Request):
     return FileResponse(SPA)
 
 @router.get("/prefabs/{prefab_id}", response_class=HTMLResponse)
-def prefab_detail(request: Request, prefab_id: str):
+def prefab_detail(request: Request, prefab_id: str, db: Session = Depends(get_db)):
+    if _is_bot(request):
+        try:
+            prefab_id_int = int(prefab_id)
+            item = controller.get_prefab(db, prefab_id=prefab_id_int)
+            if item:
+                return templates.TemplateResponse("prefab/index.html", {
+                    "request": request,
+                    "prefabName": item.prefabName,
+                    "id": item.id,
+                    "prefabDescription": item.prefabDescription,
+                })
+        except (ValueError, Exception):
+            pass
     return FileResponse(SPA)
 
 @router.get("/mods", response_class=HTMLResponse)
@@ -127,7 +208,20 @@ def mods_oldest(request: Request):
     return FileResponse(SPA)
 
 @router.get("/mods/{mod_id}", response_class=HTMLResponse)
-def mod_detail(request: Request, mod_id: str):
+def mod_detail(request: Request, mod_id: str, db: Session = Depends(get_db)):
+    if _is_bot(request):
+        try:
+            mod_id_int = int(mod_id)
+            item = controller.get_mod(db, mod_id=mod_id_int)
+            if item:
+                return templates.TemplateResponse("mod/index.html", {
+                    "request": request,
+                    "modName": item.modName,
+                    "id": item.id,
+                    "modDescription": item.modDescription,
+                })
+        except (ValueError, Exception):
+            pass
     return FileResponse(SPA)
 
 @router.get("/login", response_class=HTMLResponse)
