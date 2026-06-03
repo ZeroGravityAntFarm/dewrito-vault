@@ -453,12 +453,20 @@ def update_mod_chunk(
     if modData == 1:
         raise HTTPException(status_code=400, detail="Mod file empty")
 
-    with open("/app/static/mods/pak/" + str(mod_id) + "/" + str(mod_meta.modFileName), "wb") as f:
+    target_filename = filename
+    target_dir = Path("/app/static/mods/pak/") / str(mod_id)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    with open(target_dir / target_filename, "wb") as f:
         shutil.copyfileobj(BytesIO(modContents), f, 128 * 1024)
 
-    if not controller.update_mod_size(db, mod_id=mod_id, newSize=modData.modFileSize):
+    if mod_meta.modFileName and mod_meta.modFileName != target_filename:
+        old_path = target_dir / mod_meta.modFileName
+        if old_path.exists():
+            old_path.unlink()
+
+    if not controller.update_mod_size(db, mod_id=mod_id, newSize=modData.modFileSize, newFilename=target_filename):
         raise HTTPException(status_code=400, detail="Failed to update file size.")
 
-    entry = _remove_html(changelog)[:2000]
+    entry = removeHtml(changelog)[:2000]
     controller.create_changelog_entry(db, "mod", mod_id, entry, user.id)
     return {"status": "complete"}

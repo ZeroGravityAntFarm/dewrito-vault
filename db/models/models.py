@@ -68,7 +68,7 @@ class Mod(Base):
     modAuthor = Column(String(128), index=True)
     modFileName = Column(String(128), index=True)
     modFileSize = Column(BigInteger, index=True)
-    modVersion = Column(Integer, index=True)
+    modVersion = Column(Integer, index=True, default=1, nullable=False)
     notVisible = Column(Boolean)
     mod_downloads = Column(Integer, index=True)
     modTags = Column(String(64))
@@ -79,6 +79,7 @@ class Mod(Base):
     #Relationships
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="mods")
+    votes = relationship("ModVote", back_populates="mod", cascade="all, delete-orphan", passive_deletes=True)
 
 class Variant(Base):
     __tablename__ = "variants"
@@ -150,8 +151,10 @@ class ModVote(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     userId = Column(Integer, ForeignKey("users.id"))
-    modId = Column(Integer, ForeignKey("mods.id"))
+    modId = Column(Integer, ForeignKey("mods.id", ondelete="CASCADE"), nullable=False)
     vote = Column(Boolean)
+
+    mod = relationship("Mod", back_populates="votes")
 
 
 class Changelog(Base):

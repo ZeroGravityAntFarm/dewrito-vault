@@ -28,7 +28,7 @@ services:
     ports:
       - "127.0.0.1:8117:80"
     volumes:
-      - ./static:/app/static
+      - "E:/fileshare/static:/app/static"
     networks:
       - internal
 

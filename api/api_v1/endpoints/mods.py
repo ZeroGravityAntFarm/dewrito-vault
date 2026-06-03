@@ -197,19 +197,18 @@ def update_mod_file(
     modFile.file.close()
 
     newSize = len(modContents)
-    old_filename = controller.update_mod_size(db, mod_id, newSize, newFilename=modFile.filename)
+    target_filename = valid.modFileName or modFile.filename
 
-    # Write new pak file to disk, removing the old one if the filename changed
+    if not controller.update_mod_size(db, mod_id, newSize):
+        raise HTTPException(status_code=400, detail="Failed to update file size.")
+
+    # Write new pak file to disk using the existing stored filename
     mod_dir = Path("/app/static/mods/pak/" + str(mod_id))
     mod_dir.mkdir(parents=True, exist_ok=True)
-    if old_filename and old_filename != modFile.filename:
-        old_path = mod_dir / old_filename
-        if old_path.exists():
-            old_path.unlink()
-    with open(mod_dir / modFile.filename, "wb") as f:
+    with open(mod_dir / target_filename, "wb") as f:
         shutil.copyfileobj(BytesIO(modContents), f, 128 * 1024)
 
     entry = _remove_html(changelog)[:2000]
     controller.create_changelog_entry(db, "mod", mod_id, entry, user.id)
 
-    return HTTPException(status_code=200, detail="Mod updated successfully.")
+    return {"detail": "Mod updated successfully."}

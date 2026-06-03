@@ -910,7 +910,7 @@ def update_mod_size(db: Session, mod_id: int, newSize: int, newFilename: str = N
     if mod:
         old_filename = mod.modFileName
         mod.modFileSize = newSize
-        mod.modVersion += 1
+        mod.modVersion = (mod.modVersion or 0) + 1
         mod.time_updated = datetime.utcnow()
 
         if newFilename and newFilename != old_filename:
@@ -956,6 +956,9 @@ def delete_mod(db: Session, mod_id: int, user: str):
         #Delete mod binaries
         if os.path.exists("/app/static/mods/pak/" + str(mod.id)):
             shutil.rmtree("/app/static/mods/pak/" + str(mod.id))
+
+        #Delete all vote rows for this mod first so existing DB schemas without cascade still work
+        db.query(models.ModVote).filter(models.ModVote.modId == mod_id).delete(synchronize_session=False)
 
         #Delete mod row
         db.delete(mod)
