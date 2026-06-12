@@ -27,6 +27,12 @@ with engine.begin() as _conn:
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS mod_tags TEXT"))
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS webhook_domain VARCHAR(256)"))
     _conn.execute(text("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS game_versions TEXT"))
+    _conn.execute(text('DROP MATERIALIZED VIEW IF EXISTS public.mapdata'))
+    _conn.execute(text('ALTER TABLE maps ALTER COLUMN "mapDescription" TYPE character varying(2000)'))
+    _conn.execute(text('ALTER TABLE maps ALTER COLUMN "mapUserDesc" TYPE character varying(2000)'))
+    _conn.execute(text('ALTER TABLE mods ALTER COLUMN "modDescription" TYPE character varying(2000)'))
+    _conn.execute(text('ALTER TABLE mods ALTER COLUMN "modUserDescription" TYPE character varying(2000)'))
+    _conn.execute(text('CREATE MATERIALIZED VIEW public.mapdata AS SELECT id, "mapName", "mapDescription", "mapAuthor", "mapId", "mapScnrObjectCount", "mapTotalObject", "mapBudgetCount", "mapBaseMap", "mapFile", map_downloads, map_rating, "mapTags", owner_id, variant_id, "mapUserDesc", time_created, time_updated, (SELECT count(*) AS count FROM public.voting WHERE ((voting."mapId" = maps.id) AND (voting.vote = true))) AS upvote, (SELECT count(*) AS count FROM public.voting WHERE ((voting."mapId" = maps.id) AND (voting.vote = false))) AS downvote FROM public.maps WITH NO DATA'))
 
 #Set tmp mount to location on a larger disk
 tempfile.tempdir = "/tmp"

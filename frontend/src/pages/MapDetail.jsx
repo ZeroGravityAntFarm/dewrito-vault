@@ -449,7 +449,7 @@ export default function MapDetail({ legacyQuery }) {
                     onChange={(e) => setEditForm((f) => ({ ...f, mapUserDesc: e.target.value }))}
                     rows={4}
                     className="input resize-none text-sm"
-                    maxLength={1200}
+                    maxLength={2000}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">

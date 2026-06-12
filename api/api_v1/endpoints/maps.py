@@ -313,6 +313,9 @@ def patch_map(
     gameVersion: str = Form(None),
     user: str = Depends(get_current_user),
 ):
+    if len(mapUserDesc) > 2000:
+        raise HTTPException(status_code=400, detail="Description too long.")
+
     mapVisibility = not mapVisibility
     map = controller.update_map(
         db,

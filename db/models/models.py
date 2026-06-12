@@ -35,7 +35,7 @@ class Map(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     mapName = Column(String(128), index=True)
-    mapDescription = Column(String(1200))
+    mapDescription = Column(String(2000))
     mapAuthor = Column(String(128), index=True)
     mapId = Column(Integer, index=True)
     mapScnrObjectCount = Column(Integer, index=True)
@@ -44,7 +44,7 @@ class Map(Base):
     mapBaseMap = Column(String(128), index=True)
     mapFile = Column(LargeBinary)
     notVisible = Column(Boolean)
-    mapUserDesc = Column(String(1200)) 
+    mapUserDesc = Column(String(2000))
     map_downloads = Column(Integer, index=True)
     map_rating = Column(Integer, index=True)
     mapTags = Column(String(64))
@@ -63,8 +63,8 @@ class Mod(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     modName = Column(String(128), index=True)
-    modDescription = Column(String(1200))
-    modUserDescription = Column(String(1200))
+    modDescription = Column(String(2000))
+    modUserDescription = Column(String(2000))
     modAuthor = Column(String(128), index=True)
     modFileName = Column(String(128), index=True)
     modFileSize = Column(BigInteger, index=True)

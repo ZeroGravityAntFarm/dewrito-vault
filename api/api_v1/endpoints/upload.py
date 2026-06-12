@@ -63,7 +63,7 @@ def upload(background_tasks: BackgroundTasks, mapUserDesc: str = Form(" "), mapT
     if not user:
         raise HTTPException(status_code=403, detail="Unauthorized")
 
-    if len(mapUserDesc) > 1200:
+    if len(mapUserDesc) > 2000:
         raise HTTPException(status_code=400, detail="Description too long.")
 
     if len(files) > 7:
@@ -265,7 +265,7 @@ def upload(background_tasks: BackgroundTasks, modDescription: str = Form(" "), m
     mod_images = []
     valid_files = [".pak"]
 
-    if len(modDescription) > 1200:
+    if len(modDescription) > 2000:
         raise HTTPException(status_code=400, detail="Description too long.")
 
     if not user:
@@ -395,6 +395,8 @@ def upload_mod_chunk(
     modContents = _assemble_chunks(chunk_dir, total_chunks)
 
     modDescription = removeHtml(modDescription)
+    if len(modDescription) > 2000:
+        raise HTTPException(status_code=400, detail="Description too long.")
     modData = modReader(filename, modContents)
     if modData == 2:
         raise HTTPException(status_code=400, detail="Mod file too big.")

@@ -92,7 +92,7 @@ function MapUpload({ onClose }) {
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
           rows={3}
-          maxLength={1200}
+          maxLength={2000}
           className="input resize-none"
           required
         />
@@ -189,7 +189,7 @@ function ModUpload({ onClose }) {
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
           rows={3}
-          maxLength={1200}
+          maxLength={2000}
           className="input resize-none"
           required
         />
@@ -262,7 +262,7 @@ function PrefabUpload({ onClose }) {
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
           rows={3}
-          maxLength={1200}
+          maxLength={2000}
           className="input resize-none"
         />
       </FormField>

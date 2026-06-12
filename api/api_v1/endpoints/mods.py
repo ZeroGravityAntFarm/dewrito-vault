@@ -147,6 +147,9 @@ def read_mod_file(request: Request, mod_id: int, db: Session = Depends(get_db)):
 @router.patch("/mods/{mod_id}")
 def patch_mod(mod_id: int, modUserDesc: str = Form(" "), modVisibility: bool = Form(...), modTags: str = Form(...), modName: str = Form(...), gameVersion: str = Form(None), db: Session = Depends(get_db), user: str = Depends(get_current_user)):
 
+    if len(modUserDesc) > 2000:
+        raise HTTPException(status_code=400, detail="Description too long.")
+
     modVisibility = not modVisibility
 
     mod = controller.update_mod(db, mod_id=mod_id, modUserDesc=modUserDesc, modTags=modTags, modName=modName, user=user, modVisibility=modVisibility, gameVersion=gameVersion)
